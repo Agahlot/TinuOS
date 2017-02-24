@@ -108,5 +108,6 @@ void initregs(struct biosregs *regs);
 
 /* cpucheck.c */
 int validate_cpu();
+int do_intel(int *cpu_level_ptr, int *req_level_ptr);
 
 #endif /* BOOT_BOOT_H */
