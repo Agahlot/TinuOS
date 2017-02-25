@@ -110,4 +110,13 @@ void initregs(struct biosregs *regs);
 int validate_cpu();
 int do_intel(int *cpu_level_ptr, int *req_level_ptr);
 
+/* printf.c */
+int sprintf(char *buf, const char *format, ...);
+int vsprintf(char *str, const char *format, va_list ap);
+int printf(ocnst char *fmt, ...);
+
+/* tty.c */
+void puts(char *str);
+void putchar(char);
+
 #endif /* BOOT_BOOT_H */
