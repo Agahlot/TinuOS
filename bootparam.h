@@ -74,6 +74,8 @@ struct boot_params {
 		__u32 ext_ramdisk_size;
 		__u32 ext_cmd_line_ptr;
 
+		__u8 kbd_status;	/* keyboard status */
+
 		__u8 e820_entries;
 		struct e820entry e820_map[E820MAX];
 

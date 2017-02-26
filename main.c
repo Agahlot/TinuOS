@@ -40,6 +40,19 @@ static void init_heap(void)
 	}
 }
 
+static void keyboard_init(void)
+{
+	struct biosregs ireg, oreg;
+	initregs(&ireg);
+
+	ireg.ah = 0x02;	/* Get Keyboard status */
+	intcall(0x16, &ireg, &oreg);
+	boot_params.kbd_status = oreg.al; /* AL = shift flags */
+
+	ireg.ax = 0x0305;	/* Set keyboard repeat rate */
+	intcall(0x16, &ireg, &oreg);
+}
+
 int main()
 {
 	/* So called zero page */
@@ -62,4 +75,5 @@ int main()
 	detect_memory();
 
 	/* Initialize Keyboard */ 
+	keyboard_init();
 }
