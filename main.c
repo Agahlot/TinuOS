@@ -53,6 +53,11 @@ int main()
 	/* Initialize heap */
 	init_heap();
 
+	/*
+	 * Enable long mode 
+	 * set_bios_mode();
+	 */
+
 	/* Detect memory layout */
 	detect_memory();
 

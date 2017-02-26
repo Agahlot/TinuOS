@@ -113,10 +113,13 @@ int do_intel(int *cpu_level_ptr, int *req_level_ptr);
 /* printf.c */
 int sprintf(char *buf, const char *format, ...);
 int vsprintf(char *str, const char *format, va_list ap);
-int printf(ocnst char *fmt, ...);
+int printf(const char *fmt, ...);
 
 /* tty.c */
 void puts(char *str);
 void putchar(char);
+
+/* memory.c */
+int detect_memory(void);
 
 #endif /* BOOT_BOOT_H */

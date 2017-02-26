@@ -19,19 +19,13 @@ static void __attribute__((section(".inttext"))) serial_putchar(char ch)
 
 static void __attribute__((section(".inttext"))) biosputchar(char ch)
 {
-	asm volatile("movw $7,%%bx" : :);
-	asm volatile("movw $1,%%cx" : :);
-	asm volatile("movw $0x0e,%%ah" : :);
-	asm volatile("movw %1,%%al" : :"r"(ch));
-	asm volatile("int $0x10");
-
-	/*struct biosregs regs;
+	struct biosregs regs;
 	initregs(&regs);
 	regs.bx = 0x0007;
 	regs.cx = 0x0001;
 	regs.ah = 0x0e;
 	regs.al = ch;
-	intcall(0x10, &regs, NULL);*/
+	intcall(0x10, &regs, NULL);
 }
 
 static void __attribute__((section(".inttext"))) putchar(char ch)
