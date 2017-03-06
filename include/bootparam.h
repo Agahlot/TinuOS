@@ -4,11 +4,6 @@
 #define E820MAX 128
 #define E820_X_MAX E820MAX
 
-typedef u8 __u8;
-typedef u16 __u16;
-typedef u32 __u32;
-typedef u64 __u64;
-
 /* loadflags */
 #define LOADED_HIGH		(1 << 0)
 #define CAN_USE_HEAP	(1 << 7)

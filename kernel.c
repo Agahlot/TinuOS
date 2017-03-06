@@ -3,11 +3,12 @@
 #if !defined(__cplusplus)
 #include <stdbool.h> /* C doesn't have booleans by default. */
 #endif
-#include <stdio.h>
-#include <stddef.h>
-#include <stdint.h>
-#include "multiboot.h"
-#include "x86.h" 
+//#include <stdio.h>
+//#include <stddef.h>
+//#include <stdint.h>
+#include <multiboot.h>
+#include <x86.h>
+#include <boot.h>
 #define cpuid(in, a, b, c, d) __asm__("cpuid": "=a" (a), "=b" (b), "=c" (c), "=d" (d) : "a" (in));
 
 void printregs(int eax, int ebx, int ecx, int edx);
@@ -31,12 +32,12 @@ enum vga_color {
 	VGA_COLOR_WHITE = 15,
 };
  
-static inline uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg) {
+static inline u8 vga_entry_color(enum vga_color fg, enum vga_color bg) {
 	return fg | bg << 4;
 }
  
-static inline uint16_t vga_entry(unsigned char uc, uint8_t color) {
-	return (uint16_t) uc | (uint16_t) color << 8;
+static inline u16 vga_entry(unsigned char uc, u8 color) {
+	return (u16) uc | (u16) color << 8;
 }
  
 size_t strlen(const char* str) {
@@ -51,14 +52,14 @@ static const size_t VGA_HEIGHT = 25;
  
 size_t terminal_row;
 size_t terminal_column;
-uint8_t terminal_color;
-uint16_t* terminal_buffer;
+u8 terminal_color;
+u16* terminal_buffer;
  
 void terminal_initialize(void) {
 	terminal_row = 0;
 	terminal_column = 0;
 	terminal_color = vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK);
-	terminal_buffer = (uint16_t*) 0xB8000;
+	terminal_buffer = (u16*) 0xB8000;
 	for (size_t y = 0; y < VGA_HEIGHT; y++) {
 		for (size_t x = 0; x < VGA_WIDTH; x++) {
 			const size_t index = y * VGA_WIDTH + x;
@@ -67,7 +68,7 @@ void terminal_initialize(void) {
 	}
 }
  
-void terminal_setcolor(uint8_t color) {
+void terminal_setcolor(u8 color) {
 	terminal_color = color;
 }
 
@@ -114,7 +115,7 @@ itoa (char *buf, int base, int d)
     }
 }
  
-void terminal_putentryat(char c, uint8_t color, size_t x, size_t y) {
+void terminal_putentryat(char c, u8 color, size_t x, size_t y) {
 	const size_t index = y * VGA_WIDTH + x;
 	terminal_buffer[index] = vga_entry(c, color);
 }
@@ -225,30 +226,30 @@ void kernel_main(unsigned long magic, unsigned long addr)
 	}
 	kprintf("Stepping: %d Reserved: %d  \n", stepping, reserved);
 
-	uint32_t i = 0;
+	u32 i = 0;
 	multiboot_info_t *mbt;
 	mbt = (multiboot_info_t *)addr;
 	memory_map_t *mmap = (memory_map_t*)mbt->mmap_addr;
-	uint32_t MapLim = mbt->mmap_addr + mbt->mmap_length;
+	u32 MapLim = mbt->mmap_addr + mbt->mmap_length;
 	memory_map_t memMap[mbt->mmap_length / sizeof(memory_map_t)];
 
-	/*while((uint32_t)mmap < MapLim)
+	/*while((u32)mmap < MapLim)
 		{
 			memMap[i].size = mmap->size;
 			memMap[i].base_addr_low = mmap->base_addr_low;
 			memMap[i].base_addr_high = mmap->base_addr_high;
 			memMap[i].type = mmap->type;
 			i++;
-			mmap = (memory_map_t*)((uint32_t)mmap + mmap->size + sizeof(uint32_t));
+			mmap = (memory_map_t*)((u32)mmap + mmap->size + sizeof(u32));
 		}*/
-	for(;(uint32_t)mmap < MapLim ;i++)
+	for(;(u32)mmap < MapLim ;i++)
 	{
 		memMap[i].size = mmap->size;
 			memMap[i].base_addr_low = mmap->base_addr_low;
 			memMap[i].base_addr_high = mmap->base_addr_high;
 			memMap[i].type = mmap->type;
 			
-			mmap = (memory_map_t*)((uint32_t)mmap + mmap->size + sizeof(uint32_t));
+			mmap = (memory_map_t*)((u32)mmap + mmap->size + sizeof(u32));
 		
 		kprintf(" size = 0x%x , base_addr = 0x%x%x , length = 0x%x%x , type = 0x%x\n",
 					(unsigned) mmap->size,
@@ -259,7 +260,7 @@ void kernel_main(unsigned long magic, unsigned long addr)
 					(unsigned) mmap->type);
     
     /* setup gdt */
-		gdt();
+	gdt();	
 	}
 
 }

@@ -1,9 +1,10 @@
 #ifndef __LINUX_LINKAGE_H
 #define __LINUX_LINKAGE_H
 
-#include "linkage1.h"
-#include "stringify.h"
+#include <linkage1.h>
+#include <stringify.h>
 
+#define ASM_NL	;
 
 #ifndef __ALIGN
 #define __ALIGN		.align 4, 0x90	/* Next address that is evenly divisible by 4 */
@@ -28,9 +29,9 @@
 #endif
 
 #ifndef ENDPROC
-#define ENDPROC(name)	\
-	.type name, @function	\
-	END(name)			\
+#define ENDPROC(name) \
+	.type name, @function ASM_NL \
+	END(name)
 #endif
 
 #endif /* __LINUX_LINKAGE_H */

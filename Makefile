@@ -7,38 +7,34 @@ else
 endif
 export E Q
 
-PROGRAM	= main
+PROGRAM	= kernel
 
+OBJS	+= boot.o 
 OBJS	+= copy.o
-OBJS	+= header.o
-OBJS	+= early_serial_printk.o
-OBJS	+= printk.o
-OBJS	+= main.o 
+OBJS	+= io/gdt.o 
+OBJS	+= kernel.o 
 
-uname_M      := $(shell uname -m | sed -e s/i.86/i386/)
-ifeq ($(uname_M),i386)
-	DEFINES      += -DCONFIG_X86_32
-ifeq ($(uname_M),x86_64)
-	DEFINES      += -DCONFIG_X86_64
-endif
-endif
+CFLAGS	= -m32 -Iinclude -std=gnu99 -ffreestanding -O2
 
-CC = gcc
-CFLAGS = -Wall -Werror -pedantic -m32 -O0 -finline-functions -fno-stack-protector -nostdinc -ffreestanding -Wno-unused-function -Wno-unused-parameter -g
-LD = ld -m elf_i386
-
-all: $(PROGRAM)
+$(PROGRAM):	$(OBJS)
+	$(E) "	LINK	" $@
+	$(Q) $(CC) $(OBJS) -m32 -T kernel.ld -ffreestanding -O2 -nostdlib -o $@ -lgcc
 
 $(OBJS):
-
-%.o: %.c
+%.o: %.c 
 	$(E) "  CC      " $@
-	$(Q) $(CC) -c $(CFLAGS) $< -o $@
-	$(E) "  LINK    " $@
-	$(Q) $(LD) -T setup.ld -o main $<
+	$(Q) $(CC) -c $(CFLAGS) $< -o $@	
 
-.PHONY: clean
+boot.o: boot.s 
+	$(E) "  CC      " $@
+	$(Q) $(CC) -m32 -c boot.s -o boot.o
+
+copy.o: copy.S
+	$(E) "  CC      " $@
+	$(Q) $(CC) -m32 -c -Iinclude copy.S -o copy.o
 
 clean:
 	$(E) "  CLEAN"
-	$(Q) rm -f *.o	 
+	$(Q) rm -f *.o 
+	$(Q) rm -f io/*.o 
+.PHONY: clean

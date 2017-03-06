@@ -1,4 +1,6 @@
 #include <boot.h>
+#include <x86.h>
+#include <stdint.h>
 
 tss_entry_t tss_entry;
 
@@ -17,31 +19,31 @@ struct gdt_ptr {
 	unsigned int base;
 } __attribute__((packed));
 
-struct gdt_entry gdt[3];
+struct gdt_entry gp[3];
 struct gdt_ptr gt;
 
 void set_gdt(int num, unsigned long base, unsigned long limit, unsigned char access, unsigned granularity)
 {
-	gdt[num].base_low = (base & 0xFFFF);
-	gdt[num].base_middle = (base >> 16) & 0xFF;
-	gdt[num].base_high = (base >> 24) & 0xFF;
+	gp[num].base_low = (base & 0xFFFF);
+	gp[num].base_middle = (base >> 16) & 0xFF;
+	gp[num].base_high = (base >> 24) & 0xFF;
 
-	gdt[num].limit_low = (limit & 0xFFFF);
+	gp[num].limit_low = (limit & 0xFFFF);
 
-	gdt[num].access = access;
+	gp[num].access = access;
 
 	/* granularity bit is from 16-24 */
-	gdt[num].granularity = (limit >> 16) & 0x0F;
-	gdt[num].granularity |= (granularity & 0xF0);
+	gp[num].granularity = (limit >> 16) & 0x0F;
+	gp[num].granularity |= (granularity & 0xF0);
 }
 
 static void set_tss(int num, u16 ss0, u32 esp0)
 {
-	unsigned long base;
+	uintptr_t base;
 	unsigned long limit;
 
 	/* address of tss */
-	base = (unsigned long)tss_entry;
+	base = (uintptr_t)&tss_entry;
 	limit = base + sizeof(tss_entry);
 
 	/* Add tss descriptor to gdt */
@@ -61,10 +63,10 @@ static void set_tss(int num, u16 ss0, u32 esp0)
 	tss_entry.iomap_base = sizeof(tss_entry);
 }
 
-void gdt()
+void gdt(void)
 {
 	gt.limit = (sizeof(struct gdt_entry)*3)-1;
-	gt.base = (unsigned int)&gdt;
+	gt.base = (unsigned int)&gp;
 
 	set_gdt(0, 0, 0, 0, 0);
 	set_gdt(1, 0, 0xFFFFFFFF, 0x9A, 0xCF);

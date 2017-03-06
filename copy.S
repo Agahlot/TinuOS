@@ -1,7 +1,6 @@
 #include <linkage.h>
 
-	.code16
-	.text
+.section .text
 
 GLOBAL(memcpy)
 	pushw %si

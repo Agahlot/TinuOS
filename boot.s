@@ -104,9 +104,9 @@ _start:
 # This is useful when debugging or when you implement call tracing.
 .size _start, . - _start
 
-.global flush_gdt
-.type flush_gdt, @function
-flush_gdt:
+.global gdt_flush
+.type gdt_flush, @function
+gdt_flush:
 	# Our code descriptor is 8 bytes offset from start of gdt
 	movw $0x10, %ax
 	movw %ax, %ds 
@@ -118,9 +118,10 @@ flush_gdt:
 flush2:
 	retw
 
-.global flush_tss
-.type flush_tss, @function
-flush_tss:
+.global tss_flush
+.type tss_flush, @function
+tss_flush:
 	movw $0x10, %ax
 	ltr %ax
-	retw		
+	retw
+

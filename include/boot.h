@@ -5,7 +5,7 @@
 #include "va_list.h"
 #define ARRAY_SIZE(x)	(sizeof(x) / sizeof(x[0]))
 
-#define STACK_SIZE	512
+//#define STACK_SIZE	512
 
 /* early_serial_printk.c */
 #define IO_BASE		0x3f8
@@ -22,7 +22,7 @@ static inline void inb(u16 port)
 	u8 v;
 	asm volatile("inb %1,%0" :"=a" (v) : "dN" (port));
 }
-
+/*
 static inline u16 ds(void)
 {
 	u16 seg;
@@ -42,7 +42,7 @@ static inline u16 gs(void)
 	u16 seg;
 	asm volatile("movw %%gs,%0", :"=rm" (seg));
 	return seg;
-}
+}*/
 
 /* tty.c */
 #define cpu_relax()	asm volatile("rep; nop")
@@ -150,9 +150,15 @@ int printf(const char *fmt, ...);
 void puts(char *str);
 void putchar(char);
 
+/* copy functions */
+extern void memset(void *s, int c, size_t n);
+extern void memcpy(void *dest, const void *src, size_t n);
+
 /* gdt */
 void gdt(void);
-extern void set_kernel_stack(u32 stack);
+extern void gdt_flush();
+extern void tss_flush();
+extern void set_kernel_stack(unsigned long stack);
 
 /* memory.c */
 int detect_memory(void);

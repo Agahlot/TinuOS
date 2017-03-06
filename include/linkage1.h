@@ -12,4 +12,4 @@
 #endif
 
 #endif /* __ASSEMBLY__ */
-#endif /*_ ASM_X86_LINKAGE_H */	
+#endif /* _ASM_X86_LINKAGE_H */	
