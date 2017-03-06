@@ -1,4 +1,5 @@
-#include <linux/types.h>
+#include "types.h"
+#include "edd.h"
 
 #define E820MAX 128
 #define E820_X_MAX E820MAX
@@ -74,8 +75,14 @@ struct boot_params {
 		__u32 ext_ramdisk_size;
 		__u32 ext_cmd_line_ptr;
 
+		__u8 kbd_status;	/* keyboard status */
+
 		__u8 e820_entries;
+		__u8 eddbuf_entries;
+		__u8 edd_mbr_sig_buf_entries;
 		struct e820entry e820_map[E820MAX];
 
 		struct setup_header hdr;
-} __attribute__((packed))
+
+		struct edd_info eddbuf[EDDMAXNR];
+} __attribute__((packed));

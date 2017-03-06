@@ -1,8 +1,8 @@
 #ifndef __LINUX_LINKAGE_H
 #define __LINUX_LINKAGE_H
 
-#include <asm/linkage.h>
-#include <linux/stringify.h>
+#include "linkage1.h"
+#include "stringify.h"
 
 
 #ifndef __ALIGN

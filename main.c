@@ -76,4 +76,10 @@ int main()
 
 	/* Initialize Keyboard */ 
 	keyboard_init();
+
+	/*TODO Advance Power Management */
+	query_apm_bios();
+
+	/*TODO query edd information */
+	query_edd();
 }
