@@ -161,7 +161,11 @@ extern void tss_flush();
 extern void set_kernel_stack(unsigned long stack);
 
 /* idt */
+void idt(void);
 extern void load_idt();
+
+/* die */
+void __attribute__((noreturn)) die(void);
 
 /* memory.c */
 int detect_memory(void);

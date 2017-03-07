@@ -260,7 +260,11 @@ void kernel_main(unsigned long magic, unsigned long addr)
 					(unsigned) mmap->type);
     
     /* setup gdt */
-	gdt();	
+	gdt();
+	
+	/* setup idt */
+	idt();
+	die();	
 	}
 
 }

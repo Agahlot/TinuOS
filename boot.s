@@ -132,3 +132,9 @@ load_idt:
 	lidt (idtp)
 	retw
 
+.global die 
+.type die, @function
+die:
+	hlt 
+	jmp die
+	
