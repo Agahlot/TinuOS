@@ -126,10 +126,9 @@ tss_flush:
 	retw
 
 .global load_idt
-extern idtp
+.extern idtp
 .type load_idt, @function
 load_idt:
-	lidt [idtp]
+	lidt (idtp)
 	retw
 
-		

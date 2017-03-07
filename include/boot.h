@@ -160,6 +160,9 @@ extern void gdt_flush();
 extern void tss_flush();
 extern void set_kernel_stack(unsigned long stack);
 
+/* idt */
+extern void load_idt();
+
 /* memory.c */
 int detect_memory(void);
 

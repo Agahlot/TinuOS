@@ -12,6 +12,7 @@ PROGRAM	= kernel
 OBJS	+= boot.o 
 OBJS	+= copy.o
 OBJS	+= io/gdt.o 
+OBJS	+= io/idt.o
 OBJS	+= kernel.o 
 
 CFLAGS	= -m32 -Iinclude -std=gnu99 -ffreestanding -O2
