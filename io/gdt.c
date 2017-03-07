@@ -20,7 +20,7 @@ struct gdt_ptr {
 } __attribute__((packed));
 
 struct gdt_entry gp[3];
-struct gdt_ptr gt;
+struct gdt_ptr gdpt;
 
 void set_gdt(int num, unsigned long base, unsigned long limit, unsigned char access, unsigned granularity)
 {
@@ -65,8 +65,8 @@ static void set_tss(int num, u16 ss0, u32 esp0)
 
 void gdt(void)
 {
-	gt.limit = (sizeof(struct gdt_entry)*3)-1;
-	gt.base = (unsigned int)&gp;
+	gdpt.limit = (sizeof(struct gdt_entry)*3)-1;
+	gdpt.base = (unsigned int)&gp;
 
 	set_gdt(0, 0, 0, 0, 0);
 	set_gdt(1, 0, 0xFFFFFFFF, 0x9A, 0xCF);

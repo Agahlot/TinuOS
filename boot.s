@@ -105,8 +105,10 @@ _start:
 .size _start, . - _start
 
 .global gdt_flush
+.extern gdpt
 .type gdt_flush, @function
 gdt_flush:
+	lgdt (gdpt)
 	# Our code descriptor is 8 bytes offset from start of gdt
 	movw $0x10, %ax
 	movw %ax, %ds 
@@ -137,4 +139,3 @@ load_idt:
 die:
 	hlt 
 	jmp die
-	
