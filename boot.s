@@ -99,16 +99,86 @@ _start:
 	cli
 1:	hlt
 	jmp 1b
+	
 
 # Set the size of the _start symbol to the current location '.' minus its start.
 # This is useful when debugging or when you implement call tracing.
 .size _start, . - _start
 
+.macro ISR_NOERRORCODE code
+.global isr\code
+isr\code:
+	cli
+	pushl $0
+	pushl \code
+	jmp isr_common_stub
+.endm
+
+.macro ISR_ERRORCODE code
+.global isr\code
+isr\code:
+	cli
+	pushl \code
+	jmp isr_common_stub
+.endm		
+
+ISR_NOERRORCODE 0
+ISR_NOERRORCODE 1
+ISR_NOERRORCODE 2
+ISR_NOERRORCODE 3
+ISR_NOERRORCODE 4
+ISR_NOERRORCODE 5
+ISR_NOERRORCODE 6
+ISR_NOERRORCODE 7
+ISR_ERRORCODE   8
+ISR_NOERRORCODE 9
+ISR_ERRORCODE   10
+ISR_ERRORCODE   11
+ISR_ERRORCODE   12
+ISR_ERRORCODE   13
+ISR_ERRORCODE   14
+ISR_NOERRORCODE 15
+ISR_NOERRORCODE 16
+ISR_ERRORCODE 17
+ISR_ERRORCODE 18
+ISR_ERRORCODE 19
+ISR_ERRORCODE 20
+ISR_ERRORCODE 21
+ISR_ERRORCODE 22
+ISR_ERRORCODE 23
+ISR_ERRORCODE 24
+ISR_ERRORCODE 25
+ISR_ERRORCODE 26
+ISR_ERRORCODE 27
+ISR_ERRORCODE 28
+ISR_ERRORCODE 29
+ISR_ERRORCODE 30
+ISR_ERRORCODE 31
+
+.extern isr_handler
+isr_common_stub:
+	pushal
+	movw %ds, %ax
+	pushl %eax
+	movw $0x10, %ax		# Load kernel data segment descriptor
+	movw %ax, %ds
+	movw %ax, %es
+	movw %ax, %fs
+	movw %ax, %gs
+	call isr_handler
+	popl %eax			# Reload the original data segment descriptor
+	popal
+	addl $8, %esp
+	sti
+	iretl
+
+
 .global gdt_flush
 .extern gdpt
 .type gdt_flush, @function
 gdt_flush:
-	lgdt (gdpt)
+	movl 4(%esp), %eax
+	lgdt (%eax)
 	# Our code descriptor is 8 bytes offset from start of gdt
 	movw $0x10, %ax
 	movw %ax, %ds 
@@ -118,21 +188,22 @@ gdt_flush:
 	movw %ax, %ss 
 	ljmp $0x08,$flush2
 flush2:
-	retw
+	ret
 
 .global tss_flush
 .type tss_flush, @function
 tss_flush:
 	movw $0x10, %ax
 	ltr %ax
-	retw
+	ret
 
-.global load_idt
+.global idt_flush
 .extern idtp
-.type load_idt, @function
-load_idt:
-	lidt (idtp)
-	retw
+.type idt_flush, @function
+idt_flush:
+	movl 4(%esp), %eax
+	lidt (%eax)
+	ret
 
 .global die 
 .type die, @function

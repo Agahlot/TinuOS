@@ -4,13 +4,13 @@
 int kernel_main(unsigned long magic, unsigned long addr)
 {
     /* setup gdt */
-	//gdt();
+	gdt();
+	idt();
 	terminal_initialize();
-	kprintf("hello, world!");
+	kprintf("hello, world!\n");
 
 	/* setup idt */
-	//idt();
-	//asm volatile("int $0x3");
-	//asm volatile("int $0x4");	
+	asm volatile("int $0x3");
+	asm volatile("int $0x4");	
 	return 0;
 }
