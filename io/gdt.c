@@ -39,7 +39,7 @@ void set_gdt(int num, unsigned long base, unsigned long limit, unsigned char acc
 void set_tss(unsigned int num, unsigned short ss0, unsigned int esp0)
 {
 	uintptr_t base;
-	unsigned long limit;
+	uintptr_t limit;
 
 	/* address of tss */
 	base = (uintptr_t)&tss_entry;
@@ -53,12 +53,12 @@ void set_tss(unsigned int num, unsigned short ss0, unsigned int esp0)
 	tss_entry.ss0 = ss0;
 	tss_entry.esp0 = esp0;
 
-	tss_entry.cs = 0x08;
-	tss_entry.ss = 0x10;
-	tss_entry.ds = 0x10;
-	tss_entry.es = 0x10;
-	tss_entry.fs = 0x10;
-	tss_entry.gs = 0x10;
+	tss_entry.cs     = 0x0b;
+	tss_entry.ss     =
+		tss_entry.ds =
+		tss_entry.es =
+		tss_entry.fs =
+		tss_entry.gs = 0x13;
 	tss_entry.iomap_base = sizeof(tss_entry);
 }
 
@@ -73,10 +73,10 @@ void gdt(void)
 	set_gdt(3, 0, 0xFFFFFFFF, 0xFA, 0xCF); /* User mode code segment */
     set_gdt(4, 0, 0xFFFFFFFF, 0xF2, 0xCF); /* User mode data segment */
 
-	set_tss(5, 0x10, 0);
+	//set_tss(5, 0x10, 0);
 
 	gdt_flush((uintptr_t)&gdpt);
-	tss_flush();
+	//tss_flush();
 }
 
 void set_kernel_stack(uintptr_t stack)

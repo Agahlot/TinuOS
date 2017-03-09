@@ -1,8 +1,9 @@
 #ifndef BOOT_BOOT_H
 #define BOOT_BOOT_H
 
-#include "types.h"
-#include "va_list.h"
+#include <types.h>
+#include <va_list.h>
+#include <x86.h>
 #define ARRAY_SIZE(x)	(sizeof(x) / sizeof(x[0]))
 
 //#define STACK_SIZE	512
@@ -66,40 +67,10 @@ extern size_t vasprintf(char *buf, const char *fmt, va_list args);
 
 /* biocall for bios interrupt */
 struct biosregs {
-	union {
-		struct {
-			u32 edi;
-			u32 esi;
-			u32 ebp;
-			u32 _esp;
-			u32 ebx;
-			u32 edx;
-			u32 ecx;
-			u32 eax;
-			u32 _fsgs;
-			u32 _dses;
-			u32 eflags;
-		};
-		struct {
-			u16 di;
-			u16 si;
-			u16 bp;
-			u16 _sp;
-			u16 bx;
-			u16 dx;
-			u16 cx;
-			u16 ax;
-			u16 gs, fs;
-			u16 es, ds;
-			u16 flags;
-		};
-		struct {
-			u8 al, ah;
-			u8 bl, bh;
-			u8 cl, ch;
-			u8 dl, dh;
-		};
-	};
+	unsigned int ds;
+	unsigned int edi, esi, ebp, esp, ebx, edx, ecx, eax;
+	unsigned int int_no, err_code;
+	unsigned int eip, cs, eflags, useresp, ss;
 };
 
 typedef struct tss_entry {
@@ -132,6 +103,10 @@ typedef struct tss_entry {
 	u16 iomap_base;
 } __attribute__((packed)) tss_entry_t;
 
+/* monitor.c */
+extern void kprintf(const char* data, ...);
+extern void terminal_initialize(void);
+
 void intcall(u8 int_no, const struct biosregs *regs, struct biosregs *oregs);
 
 /* regs.c */
@@ -156,13 +131,15 @@ extern void memcpy(void *dest, const void *src, size_t n);
 
 /* gdt */
 void gdt(void);
-extern void gdt_flush();
+extern void gdt_flush(u32);
 extern void tss_flush();
-extern void set_kernel_stack(unsigned long stack);
+extern void set_kernel_stack(uintptr_t stack);
 
 /* idt */
 void idt(void);
-extern void load_idt();
+extern void set_idt(unsigned char num, unsigned long offset, unsigned short selector, unsigned char flags);
+extern void isr_handler(struct biosregs regs);
+extern void idt_flush();
 
 /* die */
 void __attribute__((noreturn)) die(void);

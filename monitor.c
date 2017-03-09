@@ -56,7 +56,7 @@ static void move_cursor()
 void scroll()
 {
 	unsigned blank, temp;
-	attrib = vga_entry_color(VGA_COLOR_BLACK, VGA_COLOR_BLACK);
+	attrib = vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK);
 	/* blank is defined as space + black color */
 	blank = vga_entry(0x20, attrib);
 
@@ -69,7 +69,14 @@ void scroll()
 				const size_t index1 = (y+1) * VGA_WIDTH + x;
 				terminal_buffer[index] = terminal_buffer[index1];
 			}
-		}
+		}	
+	}
+	for (size_t i = terminal_row; i < VGA_HEIGHT; i++)
+	{
+			for (size_t j = terminal_column; j < VGA_WIDTH; j++) {
+				const size_t clear = i * VGA_WIDTH + j;
+				terminal_buffer[clear] = vga_entry(blank, attrib);
+			}
 	}
 }
  
@@ -175,8 +182,8 @@ void terminal_putchar(char c) {
 			terminal_row = 0;
 	}
 
-	scroll();
 	move_cursor();
+	scroll();
 }
  
 void terminal_write(const char* data, size_t size) {

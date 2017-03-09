@@ -110,7 +110,7 @@ _start:
 isr\code:
 	cli
 	pushl $0
-	pushl \code
+	pushl $\code
 	jmp isr_common_stub
 .endm
 
@@ -118,7 +118,7 @@ isr\code:
 .global isr\code
 isr\code:
 	cli
-	pushl \code
+	pushl $\code
 	jmp isr_common_stub
 .endm		
 
@@ -158,7 +158,7 @@ ISR_ERRORCODE 31
 .extern isr_handler
 isr_common_stub:
 	pushal
-	movw %ds, %ax
+	movw %ax, %ds
 	pushl %eax
 	movw $0x10, %ax		# Load kernel data segment descriptor
 	movw %ax, %ds
@@ -166,10 +166,13 @@ isr_common_stub:
 	movw %ax, %fs
 	movw %ax, %gs
 	call isr_handler
-	popl %eax			# Reload the original data segment descriptor
+	popl %ebx			# Reload the original data segment descriptor
+	movw %ds, %bx
+	movw %es, %bx
+	movw %fs, %bx
+	movw %gs, %bx
 	popal
 	addl $8, %esp
-	sti
 	iretl
 
 

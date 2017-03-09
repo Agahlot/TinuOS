@@ -11,15 +11,17 @@ PROGRAM	= kernel
 
 OBJS	+= boot.o 
 OBJS	+= copy.o
+OBJS	+= monitor.o
 OBJS	+= io/gdt.o 
 OBJS	+= io/idt.o
+OBJS	+= io/isrs.o
 OBJS	+= kernel.o 
 
-CFLAGS	= -m32 -Iinclude -std=gnu99 -ffreestanding -O2
+CFLAGS	= -m32 -Iinclude -nostdlib -nostdinc -fno-builtin -fno-stack-protector -g
 
 $(PROGRAM):	$(OBJS)
-	$(E) "	LINK	" $@
-	$(Q) $(CC) $(OBJS) -m32 -T kernel.ld -ffreestanding -O2 -nostdlib -o $@ -lgcc
+	$(E) "  LINK	  " $@
+	$(Q) $(CC) $(OBJS) $(CFLAGS) -T kernel.ld -o $@
 
 $(OBJS):
 %.o: %.c 
@@ -38,4 +40,5 @@ clean:
 	$(E) "  CLEAN"
 	$(Q) rm -f *.o 
 	$(Q) rm -f io/*.o 
+	$(Q) rm -f kernel
 .PHONY: clean

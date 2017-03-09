@@ -8,11 +8,4 @@ typedef u16 __u16;
 typedef u32 __u32;
 typedef u64 __u64;
 
-static inline void
-stosb(void *addr, const void *data, int cnt)
-{
-  asm volatile("cld; rep stosb" :
-               "=D" (addr), "=c" (cnt) :
-               "0" (addr), "1" (cnt), "a" (data) :
-               "memory", "cc");
-}
+typedef unsigned long int uintptr_t;
