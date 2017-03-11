@@ -7,10 +7,11 @@ int kernel_main(unsigned long magic, unsigned long addr)
 	gdt();
 	idt();
 	terminal_initialize();
-	kprintf("hello, world!\n");
+	kprintf("Hello, World!\n");
+	init_timer(50);
 
 	/* setup idt */
-	asm volatile("int $0x3");
-	asm volatile("int $0x4");	
+	//asm volatile("int $0x3");
+	//asm volatile("int $0x4");	
 	return 0;
 }

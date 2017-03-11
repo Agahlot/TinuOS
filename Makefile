@@ -14,6 +14,8 @@ OBJS	+= copy.o
 OBJS	+= monitor.o
 OBJS	+= io/gdt.o 
 OBJS	+= io/idt.o
+OBJS	+= io/irq.o
+OBJS	+= io/timer.o
 OBJS	+= io/isrs.o
 OBJS	+= kernel.o 
 

@@ -120,6 +120,15 @@ isr\code:
 	cli
 	pushl $\code
 	jmp isr_common_stub
+.endm	
+
+.macro IRQ_ERRORCODE one, two
+.global irq\one
+irq\one:
+	cli
+	push $0
+	pushl $\two
+	jmp irq_common_stub
 .endm		
 
 ISR_NOERRORCODE 0
@@ -155,6 +164,23 @@ ISR_ERRORCODE 29
 ISR_ERRORCODE 30
 ISR_ERRORCODE 31
 
+IRQ_ERRORCODE 0, 32
+IRQ_ERRORCODE 1, 33
+IRQ_ERRORCODE 2, 34
+IRQ_ERRORCODE 3, 35
+IRQ_ERRORCODE 4, 36
+IRQ_ERRORCODE 5, 37
+IRQ_ERRORCODE 6, 38
+IRQ_ERRORCODE 7, 39
+IRQ_ERRORCODE 8, 40
+IRQ_ERRORCODE 9, 41
+IRQ_ERRORCODE 10, 42
+IRQ_ERRORCODE 11, 43
+IRQ_ERRORCODE 12, 44
+IRQ_ERRORCODE 13, 45
+IRQ_ERRORCODE 14, 46
+IRQ_ERRORCODE 15, 47
+
 .extern isr_handler
 isr_common_stub:
 	pushal
@@ -175,6 +201,25 @@ isr_common_stub:
 	addl $8, %esp
 	iretl
 
+.extern irq_handler
+irq_common_stub:
+	pushal
+	movw %ax, %ds
+	pushl %eax
+	movw $0x10, %ax		# Load kernel data segment descriptor
+	movw %ax, %ds
+	movw %ax, %es
+	movw %ax, %fs
+	movw %ax, %gs
+	call irq_handler
+	popl %ebx			# Reload the original data segment descriptor
+	movw %ds, %bx
+	movw %es, %bx
+	movw %fs, %bx
+	movw %gs, %bx
+	popal
+	addl $8, %esp
+	iretl
 
 .global gdt_flush
 .extern gdpt

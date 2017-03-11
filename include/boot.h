@@ -73,6 +73,10 @@ struct biosregs {
 	unsigned int eip, cs, eflags, useresp, ss;
 };
 
+typedef struct biosregs registers_t;
+registers_t regs;
+typedef void (*isr_t)(registers_t);
+
 typedef struct tss_entry {
 	u32 prev_tss;
 	u32 esp0;
@@ -138,8 +142,18 @@ extern void set_kernel_stack(uintptr_t stack);
 /* idt */
 void idt(void);
 extern void set_idt(unsigned char num, unsigned long offset, unsigned short selector, unsigned char flags);
-extern void isr_handler(struct biosregs regs);
 extern void idt_flush();
+
+/* irq */
+void irq(void);
+extern void irq_handler();
+
+/* isrs.c */
+extern void isr_handler(registers_t regs);
+extern void register_interrupt_handler(u8, isr_t handler);
+
+/* timer.c */
+extern void init_timer(u32 frequency);
 
 /* die */
 void __attribute__((noreturn)) die(void);

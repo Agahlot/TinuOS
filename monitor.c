@@ -45,7 +45,6 @@ u16* terminal_buffer;
 
 static void move_cursor()
 {
-	
 	u16 cursorLocation = terminal_row * VGA_WIDTH + terminal_column;
 	outb(14, 0x3D4);
 	outb(cursorLocation >> 8, 0x3D5);
@@ -164,9 +163,9 @@ void terminal_putchar(char c) {
 		terminal_row++;
 	}
 
-	else if (c >= '  ')
+	else if (c >= ' ')
 	{
-		terminal_row++;
+		//terminal_column++;
 	}
 
 	if (terminal_row >= 80)
@@ -179,7 +178,7 @@ void terminal_putchar(char c) {
 	if (++terminal_column == VGA_WIDTH) {
 		terminal_column = 0;
 		if (++terminal_row == VGA_HEIGHT)
-			terminal_row = 0;
+			terminal_row += 1;
 	}
 
 	move_cursor();
