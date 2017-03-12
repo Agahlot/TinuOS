@@ -16,11 +16,6 @@
 .long FLAGS
 .long CHECKSUM
 
-
-
-
-
-
 # The multiboot standard does not define the value of the stack pointer register
 # (esp) and it is up to the kernel to provide a stack. This allocates room for a
 # small stack by creating a symbol at the bottom of it, then allocating 16384
@@ -31,8 +26,7 @@
 # System V ABI standard and de-facto extensions. The compiler will assume the
 # stack is properly aligned and failure to align the stack will result in
 # undefined behavior.
-.section .bss
-.align 16
+.section .bootstrap_stack, "aw", @nobits
 stack_bottom:
 .skip 16384 # 16 KiB
 stack_top:
@@ -97,9 +91,10 @@ _start:
 	# 3) Jump to the hlt instruction if it ever wakes up due to a
 	#    non-maskable interrupt occurring or due to system management mode.
 	cli
-1:	hlt
-	jmp 1b
-	
+	hlt
+
+.Lhang:
+	jmp .Lhang
 
 # Set the size of the _start symbol to the current location '.' minus its start.
 # This is useful when debugging or when you implement call tracing.
@@ -193,12 +188,13 @@ isr_common_stub:
 	movw %ax, %gs
 	call isr_handler
 	popl %ebx			# Reload the original data segment descriptor
-	movw %ds, %bx
-	movw %es, %bx
-	movw %fs, %bx
-	movw %gs, %bx
+	movw %bx, %ds
+	movw %bx, %es
+	movw %bx, %fs
+	movw %bx, %gs
 	popal
 	addl $8, %esp
+	sti
 	iretl
 
 .extern irq_handler
@@ -213,14 +209,15 @@ irq_common_stub:
 	movw %ax, %gs
 	call irq_handler
 	popl %ebx			# Reload the original data segment descriptor
-	movw %ds, %bx
-	movw %es, %bx
-	movw %fs, %bx
-	movw %gs, %bx
+	movw %bx, %ds
+	movw %bx, %es
+	movw %bx, %fs
+	movw %bx, %gs
 	popal
 	addl $8, %esp
+	sti
 	iretl
-
+	
 .global gdt_flush
 .extern gdpt
 .type gdt_flush, @function
