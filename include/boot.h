@@ -130,8 +130,8 @@ void puts(char *str);
 void putchar(char);
 
 /* copy functions */
-extern void memset(void *s, int c, size_t n);
-extern void memcpy(void *dest, const void *src, size_t n);
+extern void *memcpy(void *dest, const void *src, size_t n);
+extern void * memset(void * b, int val, size_t count);
 
 /* gdt */
 void gdt(void);
@@ -141,11 +141,12 @@ extern void set_kernel_stack(uintptr_t stack);
 
 /* idt */
 void idt(void);
-extern void set_idt(unsigned char num, unsigned long offset, unsigned short selector, unsigned char flags);
+extern void set_idt(u32 num, u32 offset, u16 selector, u8 flags);
 extern void idt_flush();
 
 /* irq */
-void irq(void);
+extern void irq_remap();
+extern void set_irq();
 extern void irq_handler();
 
 /* isrs.c */

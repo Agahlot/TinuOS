@@ -61,22 +61,21 @@ void scroll()
 
 	if (terminal_row >= VGA_HEIGHT)
 	{
-		for (size_t y = 0; y < VGA_HEIGHT; y++)
-		{
-			for (size_t x = 0; x < VGA_WIDTH; x++) {
-				const size_t index = y * VGA_WIDTH + x;
-				const size_t index1 = (y+1) * VGA_WIDTH + x;
-				terminal_buffer[index] = terminal_buffer[index1];
-			}
-		}	
-	}
-	for (size_t i = terminal_row; i < VGA_HEIGHT; i++)
-	{
-			for (size_t j = terminal_column; j < VGA_WIDTH; j++) {
-				const size_t clear = i * VGA_WIDTH + j;
-				terminal_buffer[clear] = vga_entry(blank, attrib);
-			}
-	}
+		int i;
+		for (i = 0*80; i < 24*80; i++)
+        {
+            terminal_buffer[i] = terminal_buffer[i+80];
+        }
+
+        // The last line should now be blank. Do this by writing
+        // 80 spaces to it.
+        for (i = 24*80; i < 25*80; i++)
+        {
+            terminal_buffer[i] = blank;
+        }
+        // The cursor should now be on the last line.
+        terminal_row = 24;
+    }	
 }
  
 void terminal_initialize(void) {

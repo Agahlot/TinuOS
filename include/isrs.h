@@ -30,5 +30,3 @@ extern void isr28();
 extern void isr29();
 extern void isr30();
 extern void isr31();
-
-isr_t interrupt_descriptors[256];

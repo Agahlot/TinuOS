@@ -18,10 +18,13 @@ struct gdt_ptr {
 	unsigned int base;
 } __attribute__((packed));
 
-struct gdt_entry gp[5];
-struct gdt_ptr gdpt;
+typedef struct gdt_entry gdt_entry_t;
+typedef struct gdt_ptr gdt_ptr_t;
 
-void set_gdt(int num, unsigned long base, unsigned long limit, unsigned char access, unsigned char gran)
+gdt_entry_t gp[6];
+gdt_ptr_t gdpt;
+
+void set_gdt(u32 num, u32 base, u32 limit, u8 access, u8 gran)
 {
 	gp[num].base_low = (base & 0xFFFF);
 	gp[num].base_middle = (base >> 16) & 0xFF;
@@ -29,14 +32,15 @@ void set_gdt(int num, unsigned long base, unsigned long limit, unsigned char acc
 
 	gp[num].limit_low = (limit & 0xFFFF);
 
-	gp[num].access = access;
-
 	/* granularity bit is from 16-24 */
+
 	gp[num].granularity = (limit >> 16) & 0x0F;
+
 	gp[num].granularity |= (gran & 0xF0);
+	gp[num].access = access;
 }
 
-void set_tss(unsigned int num, unsigned short ss0, unsigned int esp0)
+void set_tss(u32 num, u16 ss0, u32 esp0)
 {
 	uintptr_t base;
 	uintptr_t limit;
@@ -48,7 +52,7 @@ void set_tss(unsigned int num, unsigned short ss0, unsigned int esp0)
 	/* Add tss descriptor to gdt */
 	set_gdt(num, 4096, 103, 0x89, 0x00);
 
-	memset(&tss_entry, 0, sizeof(tss_entry));
+	memset(&tss_entry, 0, sizeof(tss_entry_t));
 
 	tss_entry.ss0 = ss0;
 	tss_entry.esp0 = esp0;
@@ -59,12 +63,12 @@ void set_tss(unsigned int num, unsigned short ss0, unsigned int esp0)
 		tss_entry.es = 0x10;
 		tss_entry.fs = 0x10;
 		tss_entry.gs = 0x10;
-	tss_entry.iomap_base = sizeof(tss_entry);
+	tss_entry.iomap_base = sizeof(tss_entry_t);
 }
 
 void gdt(void)
 {
-	gdpt.limit = (sizeof(struct gdt_entry)*5)-1;
+	gdpt.limit = (sizeof(gdt_entry_t)*6)-1;
 	gdpt.base = (uintptr_t)&gp;
 
 	set_gdt(0, 0, 0, 0, 0);

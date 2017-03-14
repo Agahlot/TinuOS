@@ -34,7 +34,10 @@
 
 #include <boot.h>
 #include <isrs.h>
+#include <irq.h>
 #include <x86.h>
+
+extern isr_t interrupt_descriptors[];
 
 struct idt_entry {
 	unsigned short offset_low;
@@ -49,10 +52,13 @@ struct idt_ptr {
 	unsigned int base;
 } __attribute__((packed));
 
-struct idt_entry id[256];
-struct idt_ptr idtp;
+typedef struct idt_entry idt_entry_t;
+typedef struct idt_ptr idt_ptr_t;
 
-void set_idt(unsigned char num, unsigned long offset, unsigned short selector, unsigned char flags)
+idt_entry_t id[256];
+idt_ptr_t idtp;
+
+void set_idt(u32 num, u32 offset, u16 selector, u8 flags)
 {
 	id[num].offset_low = (offset & 0xFFFF);
 	id[num].offset_high = (offset >> 16) & 0xFFFF;
@@ -63,43 +69,50 @@ void set_idt(unsigned char num, unsigned long offset, unsigned short selector, u
 
 void idt()
 {
-	idtp.limit = (sizeof(struct idt_entry)*256)-1;
+	idtp.limit = (sizeof(idt_entry_t)*256)-1;
 	idtp.base = (uintptr_t)&id;
 
-	memset(&id, 0, sizeof(struct idt_entry)*256);
+	memset(&id, 0, sizeof(idt_entry_t)*256);
 
-  set_idt(0, (unsigned)isr0, 0x08, 0x8E);
-  set_idt(1, (unsigned)isr1, 0x08, 0x8E);
-  set_idt(2, (unsigned)isr2, 0x08, 0x8E);
-  set_idt(3, (unsigned)isr3, 0x08, 0x8E);
-  set_idt(4, (unsigned)isr4, 0x08, 0x8E);
-  set_idt(5, (unsigned)isr5, 0x08, 0x8E);
-  set_idt(6, (unsigned)isr6, 0x08, 0x8E);
-  set_idt(7, (unsigned)isr7, 0x08, 0x8E);
-  set_idt(8, (unsigned)isr8, 0x08, 0x8E);
-  set_idt(9, (unsigned)isr9, 0x08, 0x8E);
-  set_idt(10, (unsigned)isr10, 0x08, 0x8E);
-  set_idt(11, (unsigned)isr11, 0x08, 0x8E);
-  set_idt(12, (unsigned)isr12, 0x08, 0x8E);
-  set_idt(13, (unsigned)isr13, 0x08, 0x8E);
-  set_idt(14, (unsigned)isr14, 0x08, 0x8E);
-  set_idt(15, (unsigned)isr15, 0x08, 0x8E);
-  set_idt(16, (unsigned)isr16, 0x08, 0x8E);
-  set_idt(17, (unsigned)isr17, 0x08, 0x8E);
-  set_idt(18, (unsigned)isr18, 0x08, 0x8E);
-  set_idt(19, (unsigned)isr19, 0x08, 0x8E);
-  set_idt(20, (unsigned)isr20, 0x08, 0x8E);
-  set_idt(21, (unsigned)isr21, 0x08, 0x8E);
-  set_idt(22, (unsigned)isr22, 0x08, 0x8E);
-  set_idt(23, (unsigned)isr23, 0x08, 0x8E);
-  set_idt(24, (unsigned)isr24, 0x08, 0x8E);
-  set_idt(25, (unsigned)isr25, 0x08, 0x8E);
-  set_idt(26, (unsigned)isr26, 0x08, 0x8E);
-  set_idt(27, (unsigned)isr27, 0x08, 0x8E);
-  set_idt(28, (unsigned)isr28, 0x08, 0x8E);
-  set_idt(29, (unsigned)isr29, 0x08, 0x8E);
-  set_idt(30, (unsigned)isr30, 0x08, 0x8E);
-  set_idt(31, (unsigned)isr31, 0x08, 0x8E);
+  irq_remap();
+
+  set_idt(0, (u32)  isr0, 0x08, 0x8E);
+  set_idt(1, (u32)  isr1, 0x08, 0x8E);
+  set_idt(2, (u32)  isr2, 0x08, 0x8E);
+  set_idt(3, (u32)  isr3, 0x08, 0x8E);
+  set_idt(4, (u32)  isr4, 0x08, 0x8E);
+  set_idt(5, (u32)  isr5, 0x08, 0x8E);
+  set_idt(6, (u32)  isr6, 0x08, 0x8E);
+  set_idt(7, (u32)  isr7, 0x08, 0x8E);
+  set_idt(8, (u32)  isr8, 0x08, 0x8E);
+  set_idt(9, (u32)  isr9, 0x08, 0x8E);
+  set_idt(10, (u32)  isr10, 0x08, 0x8E);
+  set_idt(11, (u32)  isr11, 0x08, 0x8E);
+  set_idt(12, (u32)  isr12, 0x08, 0x8E);
+  set_idt(13, (u32)  isr13, 0x08, 0x8E);
+  set_idt(14, (u32)  isr14, 0x08, 0x8E);
+  set_idt(15, (u32)  isr15, 0x08, 0x8E);
+  set_idt(16, (u32)  isr16, 0x08, 0x8E);
+  set_idt(17, (u32)  isr17, 0x08, 0x8E);
+  set_idt(18, (u32)  isr18, 0x08, 0x8E);
+  set_idt(19, (u32)  isr19, 0x08, 0x8E);
+  set_idt(20, (u32)  isr20, 0x08, 0x8E);
+  set_idt(21, (u32)  isr21, 0x08, 0x8E);
+  set_idt(22, (u32)  isr22, 0x08, 0x8E);
+  set_idt(23, (u32)  isr23, 0x08, 0x8E);
+  set_idt(24, (u32)  isr24, 0x08, 0x8E);
+  set_idt(25, (u32)  isr25, 0x08, 0x8E);
+  set_idt(26, (u32)  isr26, 0x08, 0x8E);
+  set_idt(27, (u32)  isr27, 0x08, 0x8E);
+  set_idt(28, (u32)  isr28, 0x08, 0x8E);
+  set_idt(29, (u32)  isr29, 0x08, 0x8E);
+  set_idt(30, (u32)  isr30, 0x08, 0x8E);
+  set_idt(31, (u32)  isr31, 0x08, 0x8E);
+
+  set_irq();
 
 	idt_flush((u32)&idtp);
+
+  /* NULLify all the interrupt descriptors */
+  memset(&interrupt_descriptors, 0, sizeof(isr_t)*256);
 }

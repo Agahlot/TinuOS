@@ -1,6 +1,8 @@
 #include <boot.h>
 #include <isrs.h>
 
+isr_t interrupt_descriptors[256];
+
 void isr_handler(registers_t regs)
 {
 	kprintf("Recieved interrupt:");
@@ -21,6 +23,9 @@ void irq_handler(registers_t regs)
 	}
 	outb(0x20, 0x20);
 
+	/* All the registers are from struct biosregs are pushed onto the stack and
+	 * regs.int_no handler gets called.
+	 */
 	isr_t handler = interrupt_descriptors[regs.int_no];
 	if (handler)
 	{
