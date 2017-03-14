@@ -78,6 +78,7 @@ _start:
 	# aligned above and we've since pushed a multiple of 16 bytes to the
 	# stack since (pushed 0 bytes so far) and the alignment is thus
 	# preserved and the call is well defined.
+	cli
 	call kernel_main
 
 	# If the system has nothing more to do, put the computer into an
@@ -90,9 +91,8 @@ _start:
 	#    Since they are disabled, this will lock up the computer.
 	# 3) Jump to the hlt instruction if it ever wakes up due to a
 	#    non-maskable interrupt occurring or due to system management mode.
-	cli
-	hlt
-
+	#cli
+	#hlt
 .Lhang:
 	jmp .Lhang
 
@@ -179,7 +179,7 @@ IRQ_ERRORCODE 15, 47
 .extern isr_handler
 isr_common_stub:
 	pushal
-	movw %ax, %ds
+	movw %ds, %ax
 	pushl %eax
 	movw $0x10, %ax		# Load kernel data segment descriptor
 	movw %ax, %ds
@@ -200,7 +200,7 @@ isr_common_stub:
 .extern irq_handler
 irq_common_stub:
 	pushal
-	movw %ax, %ds
+	movw %ds, %ax
 	pushl %eax
 	movw $0x10, %ax		# Load kernel data segment descriptor
 	movw %ax, %ds
