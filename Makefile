@@ -38,6 +38,14 @@ copy.o: copy.S
 	$(E) "  CC      " $@
 	$(Q) $(CC) -m32 -c -Iinclude copy.S -o copy.o
 
+bochs: $(PROGRAM)
+		CYLINDERS="$$(($$(stat -c '%s' '$(PROGRAM)') / 512))" && \
+		bochs -qf /dev/null \
+			'ata0-master: type=disk, path="$(PROGRAM)", mode=flat, cylinders='"$$CYLINDERS"', heads=1, spt=1' \
+			'boot: disk' \
+			'display_library: x, options="gui_debug"' \
+			'megs: 128'	
+
 clean:
 	$(E) "  CLEAN"
 	$(Q) rm -f *.o 
