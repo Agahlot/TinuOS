@@ -45,6 +45,16 @@ static inline u16 gs(void)
 	return seg;
 }*/
 
+static inline u32 xchg(volatile u32 *addr, u32 newval)
+{
+	u32 result;
+	asm volatile("lock; xchg %0, %1"
+				: "+m" (*addr), "=a" (result)
+				: "1" (newval)
+				: "cc");
+	return result;
+}
+
 /* tty.c */
 #define cpu_relax()	asm volatile("rep; nop")
 
