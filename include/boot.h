@@ -23,27 +23,23 @@ static inline void inb(u16 port)
 	u8 v;
 	asm volatile("inb %1,%0" :"=a" (v) : "dN" (port));
 }
-/*
-static inline u16 ds(void)
+
+static inline u32 read_eflags(void)
 {
-	u16 seg;
-	asm volatile("movw %%ds,%0" :"=rm" (seg));
-	return seg;
+	u32 eflags;
+	asm volatile("pushl; popfl %0" : "=r" (flags));
+	return eflags;
 }
 
-static inline u16 fs(void)
+static inline u32 cli(void)
 {
-	u16 seg;
-	asm volatile("movw %%fs,%0", :"=rm" (seg));
-	return seg;
+	asm volatile("cli");
 }
 
-static inline u16 gs(void)
+static inline u32 sti(void)
 {
-	u16 seg;
-	asm volatile("movw %%gs,%0", :"=rm" (seg));
-	return seg;
-}*/
+	asm volatile("sti");
+}
 
 static inline u32 xchg(volatile u32 *addr, u32 newval)
 {
@@ -165,6 +161,10 @@ extern void register_interrupt_handler(u8, isr_t handler);
 
 /* timer.c */
 extern void init_timer(u32 frequency);
+
+/* spinlock.c */
+void acquire(struct spinlock *lk);
+void release(struct spinlock *lk);
 
 /* die */
 void __attribute__((noreturn)) die(void);
