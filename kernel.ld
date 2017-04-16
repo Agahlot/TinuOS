@@ -1,61 +1,69 @@
-/* The bootloader will look at this image and start execution at the symbol
-   designated as the entry point. */
+/* Simple linker script for the JOS kernel.
+   See the GNU ld 'info' manual ("info ld") to learn the syntax. */
+
+OUTPUT_FORMAT("elf32-i386", "elf32-i386", "elf32-i386")
+OUTPUT_ARCH(i386)
 ENTRY(_start)
 
-/* Tell where the various sections of the object files will be put in the final
-   kernel image. */
 SECTIONS
 {
-	/* Begin putting sections at 1 MiB, a conventional place for kernels to be
-	   loaded at by the bootloader. */
-	. = 1M;
+	/* Link the kernel at this address: "." means the current address */
+        /* Must be equal to KERNLINK */
+	. = 0x80100000;
 
-	/* First put the multiboot header, as it is required to be put very early
-	   early in the image or the bootloader won't recognize the file format.
-	   Next we'll put the .text section. */
-	.text BLOCK(4K) : ALIGN(4K)
-	{
-		*(.multiboot)
-		*(.text)
+	.text : AT(0x100000) {
+		*(.text .stub .text.* .gnu.linkonce.t.*)
 	}
 
-	/* Make sure the GNU notes information is placed after .text. Failure to
-	   to do so may push the GRUB multiboot information beyond the first 8k
-	   and GRUB will not identify this kernel as multiboot capable.
-	   Alternative to this is to compile the final binary with this linker 
-	   option to exclude this unqiue header:
-	   -Wl,--build-id=none */
+	PROVIDE(etext = .);	/* Define the 'etext' symbol to this value */
 
-	.note.gnu.build-id BLOCK(4K) : ALIGN(4K)
-	{
-		*(.note.gnu.build-id)
-	}
-	
-	.inittext BLOCK(4K) : ALIGN(4K)
-	{
-		*(.inittext) 
+	.rodata : {
+		*(.rodata .rodata.* .gnu.linkonce.r.*)
 	}
 
-	/* Read-only data. */
-	.rodata BLOCK(4K) : ALIGN(4K)
-	{
-		*(.rodata)
+	/* Include debugging information in kernel memory */
+	.stab : {
+		PROVIDE(__STAB_BEGIN__ = .);
+		*(.stab);
+		PROVIDE(__STAB_END__ = .);
+		BYTE(0)		/* Force the linker to allocate space
+				   for this section */
 	}
 
-	/* Read-write data (initialized) */
-	.data BLOCK(4K) : ALIGN(4K)
-	{
+	.stabstr : {
+		PROVIDE(__STABSTR_BEGIN__ = .);
+		*(.stabstr);
+		PROVIDE(__STABSTR_END__ = .);
+		BYTE(0)		/* Force the linker to allocate space
+				   for this section */
+	}
+
+	/* Adjust the address for the data segment to the next page */
+	. = ALIGN(0x1000);
+
+	/* Conventionally, Unix linkers provide pseudo-symbols
+	 * etext, edata, and end, at the end of the text, data, and bss.
+	 * For the kernel mapping, we need the address at the beginning
+	 * of the data section, but that's not one of the conventional
+	 * symbols, because the convention started before there was a
+	 * read-only rodata section between text and data. 
+	 */
+	PROVIDE(data = .);
+
+	/* The data segment */
+	.data : {
 		*(.data)
 	}
 
-	/* Read-write data (uninitialized) and stack */
-	.bss BLOCK(4K) : ALIGN(4K)
-	{
-		*(COMMON)
+	PROVIDE(edata = .);
+
+	.bss : {
 		*(.bss)
-		*(.bootstrap_stack)
 	}
 
-	/* The compiler may produce other sections, by default it will put them in
-	   a segment with the same name. Simply add stuff here as needed. */
+	PROVIDE(end = .); 
+
+	/DISCARD/ : {
+		*(.eh_frame .note.GNU-stack)
+	}
 }

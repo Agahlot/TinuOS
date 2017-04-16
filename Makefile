@@ -7,7 +7,10 @@ else
 endif
 export E Q
 
+ISODIR	= iso/
 PROGRAM	= kernel
+ISOPROG	= $(ISODIR)/boot/kernel
+OS 		= kernel.iso
 
 OBJS	+= boot.o 
 OBJS	+= monitor.o
@@ -16,6 +19,10 @@ OBJS	+= io/idt.o
 OBJS	+= io/irq.o
 OBJS	+= io/timer.o
 OBJS	+= io/isrs.o
+OBJS	+= mmu/spinlock.o
+OBJS	+= mmu/mmu.o
+OBJS	+= mmu/kmalloc.o
+#OBJS	+= mmu/umalloc.o
 OBJS 	+= system.o
 OBJS	+= kernel.o 
 
@@ -24,31 +31,34 @@ CFLAGS	= -m32 -Iinclude -nostdlib -nostdinc -fno-builtin -fno-stack-protector -g
 $(PROGRAM):	$(OBJS)
 	$(E) "  LINK	  " $@
 	$(Q) $(CC) -Wl,--build-id=none $(OBJS) $(CFLAGS) -T kernel.ld -o $@
+	$(E) "  CP	  " $@
+	$(Q) cp $(PROGRAM) iso/boot
+	$(E) "  ISO 	  " $@
+	$(Q) grub-mkrescue -o '$@'.iso '$(ISODIR)'
 
 $(OBJS):
 %.o: %.c 
 	$(E) "  CC      " $@
 	$(Q) $(CC) -c $(CFLAGS) $< -o $@	
 
-boot.o: boot.s 
+boot.o: boot.S
 	$(E) "  CC      " $@
-	$(Q) $(CC) -m32 -c boot.s -o boot.o
-
-copy.o: copy.S
-	$(E) "  CC      " $@
-	$(Q) $(CC) -m32 -c -Iinclude copy.S -o copy.o
+	$(Q) $(CC) -m32 -Iinclude -gdwarf-2 -Wa,-divide -c boot.S -o boot.o
 
 bochs: $(PROGRAM)
 		CYLINDERS="$$(($$(stat -c '%s' '$(PROGRAM)') / 512))" && \
 		bochs -qf /dev/null \
-			'ata0-master: type=disk, path="$(PROGRAM)", mode=flat, cylinders='"$$CYLINDERS"', heads=1, spt=1' \
+			'ata0-master: type=disk, path="kernel.iso", mode=flat, cylinders='"$$CYLINDERS"', heads=1, spt=1' \
 			'boot: disk' \
-			'display_library: x, options="gui_debug"' \
+			'display_library: sdl, options="gui_debug"' \
 			'megs: 128'	
 
 clean:
 	$(E) "  CLEAN"
 	$(Q) rm -f *.o 
 	$(Q) rm -f io/*.o 
+	$(Q) rm -f mmu/*.o
 	$(Q) rm -f kernel
+	$(Q) rm -f kernel.iso
+	$(Q) rm -f iso/boot/kernel
 .PHONY: clean

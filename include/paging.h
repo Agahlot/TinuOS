@@ -41,8 +41,8 @@
 
 */
 
-#include <mmu.h>
-#include <boot.h>
+#pragma once
+#include <x86.h>
 
 
 #define PAGES_PER_TABLE 1024
@@ -65,6 +65,15 @@
 #define PDE_RW          (1 << 1)   /* Read/Write */
 #define PDE_PS          (1 << 7)   /* Page Size */
 
+#define PAGEADDRESS(P)  ((uintptr_t) (pn) << PTE_SHIFT)
+
+#define MEM_PHYSICAL    0x200000
+
+/* Number of physical pages */
+#define NPAGES          (MEM_PHYSICAL/PAGE_SIZE)
+
+#define PGROUNDUP(P)    ((P + PAGE_SIZE - 1) & ~(PAGE_SIZE-1))
+
 /* Page Table Entry */
 typedef struct {
     unsigned present : 1;
@@ -80,8 +89,17 @@ typedef struct {
     unsigned frame_address : 20;
 } __attribute__((packed)) pte_t;
 
+typedef struct page_table {
+    pte_t pages[1024];
+} page_table_t;
+
+typedef struct page_directory {
+    page_table_t *tables[1024];   /* 1024 pointers to page tables */
+    uintptr_t physical_tables[1024]; /* Physical address of page tables */
+} page_directory_t;
+
 /* Set PTE present bit */
-#define SET_PTL_PRESENT_ARCH(ptl, i)
+/*#define SET_PTL_PRESENT_ARCH(ptl, i)
     set_pt_present((pte_t *) (ptl), (size_t (i)))
 
 #define SET_PTL_FLAGS_ARCH(ptl, i, flags)
@@ -90,13 +108,13 @@ typedef struct {
 #define GET_PTL_FLAGS_ARCH(ptl, i)
     get_pt_flags((pte_t *) (ptl), (size_t) (i))
 
-static inline set_pt_present(pte_t *pt, size_t i)
+static inline u32 set_pt_present(pte_t *pt, size_t i)
 {
     pte_t *p = &pt[i];
     p->present = 1;
 }
 
-static inline set_pt_flags(pte_t *pt, size_t i, int flags)
+static inline u32 set_pt_flags(pte_t *pt, size_t i, int flags)
 {
     pte_t *p = &pt[i];
 
@@ -107,7 +125,7 @@ static inline set_pt_flags(pte_t *pt, size_t i, int flags)
     p->global_page = (flags & PAGE_GLOBAL);
 }
 
-static inline get_pt_flags(pte_t *pt, size_t i)
+static inline u32 get_pt_flags(pte_t *pt, size_t i)
 {
     pte_t *p = &pt[i];
 
@@ -119,3 +137,4 @@ static inline get_pt_flags(pte_t *pt, size_t i)
           1 << PAGE_EXEC_SHIFT | 
           (p->global_page) << PAGE_GLOBAL_SHIFT);
 }
+*/

@@ -9,3 +9,4 @@ typedef u32 __u32;
 typedef u64 __u64;
 
 typedef unsigned long int uintptr_t;
+typedef unsigned long size_t;

@@ -1,86 +1,65 @@
 #include <boot.h>
+#include <spinlock.h>
+#include <paging.h>
+#include <memlayout.h>
 
-/* Very basic memory allocator from K&R section 8.7 */
+extern char end[];
 
-typedef long Align;
-
-union header {
-  struct {
-    union header *ptr;
-    uint size;
-  } s;
-  Align x;
+struct run {
+	struct run *next;
 };
 
-typedef union header Header;
+struct {
+	struct spinlock lock;
+	int use_lock;
+	struct run *freelist;
+} kmem;
 
-static Header base;
-static Header *freep;
-
-void
-free(void *ap)
+void kinit1(void *vstart, void *vend)
 {
-  Header *bp, *p;
-
-  bp = (Header*)ap - 1;
-  for(p = freep; !(bp > p && bp < p->s.ptr); p = p->s.ptr)
-    if(p >= p->s.ptr && (bp > p || bp < p->s.ptr))
-      break;
-  if(bp + bp->s.size == p->s.ptr){
-    bp->s.size += p->s.ptr->s.size;
-    bp->s.ptr = p->s.ptr->s.ptr;
-  } else
-    bp->s.ptr = p->s.ptr;
-  if(p + p->s.size == bp){
-    p->s.size += bp->s.size;
-    p->s.ptr = bp->s.ptr;
-  } else
-    p->s.ptr = bp;
-  freep = p;
+	initlock(&kmem.lock, "kmem");
+	kmem.use_lock = 0;
+	freerange(vstart, vend);
 }
 
-static Header*
-morecore(uint nu)
+void freerange(void *vstart, void *vend)
 {
-  char *p;
-  Header *hp;
-
-  if(nu < 4096)
-    nu = 4096;
-  p = sbrk(nu * sizeof(Header));
-  if(p == (char*)-1)
-    return 0;
-  hp = (Header*)p;
-  hp->s.size = nu;
-  free((void*)(hp + 1));
-  return freep;
+	char *p;
+	p = (char *)(PGROUNDUP((u32)vstart));
+	for(; p+PAGE_SIZE <= (char *)vend; p+=PAGE_SIZE)
+		kfree(p);
 }
 
-void*
-malloc(uint nbytes)
+void kfree(char *p)
 {
-  Header *p, *prevp;
-  uint nunits;
+	struct run *r;
 
-  nunits = (nbytes + sizeof(Header) - 1)/sizeof(Header) + 1;
-  if((prevp = freep) == 0){
-    base.s.ptr = freep = prevp = &base;
-    base.s.size = 0;
-  }
-  for(p = prevp->s.ptr; ; prevp = p, p = p->s.ptr){
-    if(p->s.size >= nunits){
-      if(p->s.size == nunits)
-        prevp->s.ptr = p->s.ptr;
-      else {
-        p->s.size -= nunits;
-        p += p->s.size;
-        p->s.size = nunits;
-      }
-      freep = prevp;
-      return (void*)(p + 1);
-    }
-    if(p == freep)
-      if((p = morecore(nunits)) == 0)
-        return 0;
-  }
+	if ((u32)p >= V2P(PHYSTOP))
+		kprintf("kfree");
+
+	memset(p, 1, PAGE_SIZE);
+
+	if (kmem.use_lock)
+		acquire(&kmem.lock);
+	r = (struct run *)p;
+	r->next = kmem.freelist;
+	kmem.freelist = r;
+	if (kmem.use_lock)
+		release(&kmem.lock);
+}
+
+/* Allocates a PAGE_SIZE memory */
+char *kalloc()
+{
+	struct run *r;
+
+	if (kmem.use_lock)
+		acquire(&kmem.lock);
+	r = kmem.freelist;
+	if (r)
+		kmem.freelist = r->next;	/* Points to next free page */
+	if (kmem.use_lock)
+		release(&kmem.lock);
+
+	return (char *)r;
 }

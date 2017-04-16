@@ -1,13 +1,3 @@
-/* Memory Management defines */
-
-struct spinlock {
-	u32 locked;	/* is the lock head, 0=Available;non-zero=held */
-
-	/* For debugging puposes */
-	char *name;		/* name of the lock */
-	struct cpu *cpu;	/* Is it the same CPU that released the lock who was holding the lock */
-	u32 pcs[10];		/* The call stack that locked the lock */
-};
 
 
 /* EFLAGS */
@@ -32,6 +22,16 @@ struct spinlock {
 #define VIF			0x00080000 		/* Virtual Interrupt Flag */
 #define VIP			0x00100000 		/* Virtual Interrupt Pending */
 #define ID			0x00200000 		/* ID Flag */
+
+/* Control Registers */
+#define CR0_PE 		0x00000001 		/* Protected Mode Enable */
+#define CR0_MP		0x00000002 		/* Monitor co-processor */
+#define CR0_WP		0x00010000 		/* Write Protect */
+#define CR0_CD		0x40000000 		/* Cache Disable */
+#define CR0_PG 		0x80000000		/* Paging */
+
+#define CR4_PSE		0x00000010 		/* Page Size Extension */
+#define CR4_PAE		0x00000020 		/* Physical Address Extension */
 
 #define PAGE_CACHEABLE_SHIFT		0
 #define PAGE_NOT_CACHEABLE_SHIFT 	PAGE_CACHEABLE_SHIFT
@@ -58,7 +58,3 @@ struct spinlock {
 #define PAGE_EXEC 					(1 << PAGE_EXEC_SHIFT)
 
 #define PAGE_GLOBAL 				(1 << PAGE_GLOBAL_SHIFT)
-
-/* spinlock.c */
-void 	pushcli(void);
-int 	holding(struct spinlock*);

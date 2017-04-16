@@ -1,9 +1,9 @@
-#ifndef BOOT_BOOT_H
-#define BOOT_BOOT_H
+#pragma once
 
-#include <types.h>
 #include <va_list.h>
 #include <x86.h>
+#include <mmu.h>
+#include <spinlock.h>
 #define ARRAY_SIZE(x)	(sizeof(x) / sizeof(x[0]))
 
 //#define STACK_SIZE	512
@@ -27,7 +27,7 @@ static inline void inb(u16 port)
 static inline u32 read_eflags(void)
 {
 	u32 eflags;
-	asm volatile("pushl; popfl %0" : "=r" (flags));
+	asm volatile("pushal; popl %0" : "=r" (eflags));
 	return eflags;
 }
 
@@ -163,8 +163,25 @@ extern void register_interrupt_handler(u8, isr_t handler);
 extern void init_timer(u32 frequency);
 
 /* spinlock.c */
-void acquire(struct spinlock *lk);
-void release(struct spinlock *lk);
+extern void initlock(lock *lk, char *name);
+extern void acquire(lock *lk);
+extern void release(lock *lk);
+extern void pushcli(void);
+extern int holding(lock *lk);
+
+/* kmalloc.c */
+extern void kinit1(void *vstart, void *vend);
+extern void kinit2(void *vstart, void *vend);
+extern void freerange(void *vstart, void *vend);
+extern char *kalloc(void);
+extern void kfree(char *);
+
+/* mmu.c */
+extern void paging_install(void);
+extern u32 *pagetable_init(void);
+extern u32 mappages(u32 *pgdir, void *va, u32 size, u32 pa, int perm);
+extern u32 *pagewalk(u32 *pgdir, void *va, int alloc);
+
 
 /* die */
 void __attribute__((noreturn)) die(void);
@@ -177,5 +194,3 @@ int query_apm_bios(void);
 
 /* edd.c */
 void query_edd(void);
-
-#endif /* BOOT_BOOT_H */

@@ -1,14 +1,48 @@
 /* Mutual exclusion spinlock */
 
 #include <boot.h>
-#include <mmu.h>
-#include <proc.h>
+#include <spinlock.h>
+
+/* Check weather the cpu is holding the lock */
+int holding(lock *lk)
+{
+	return lk->locked;
+}
+
+void pushcli(void)
+{
+	int eflags;
+
+	eflags = read_eflags();
+	cli();
+/*	if (cpu->pushcli == 0)
+	{
+		cpu->intr = eflags & IF;
+	}
+	cpu->pushcli +=1;
+*/
+}
+
+void popcli(void)
+{
+	if (read_eflags() & IF)
+		kprintf("popcli - interruptable");
+//	if ((cpu->pushcli && cpu->intr) == 0)
+		sti();
+}
+
+void initlock(lock *lk, char *name)
+{
+	lk->name = name;
+	lk->locked = 0;
+//	lk->cpu = 0;
+}
 
 /* Acquires lock by spinning until lock is acquired.
  * We first disable the interrupts so that the deadlock condition 
  * is avoided.
  */
-void acquire(struct spinlock *lk)
+void acquire(lock *lk)
 {
 	pushcli();
 
@@ -16,7 +50,7 @@ void acquire(struct spinlock *lk)
 		kprintf("acquire\n");
 
 	/* Atomic xchg instruction for locking */
-	while(xchg(lk->locked, 1) != 0)
+	while(xchg(&lk->locked, 1) != 0)
 		;
 
 	/* 
@@ -27,43 +61,20 @@ void acquire(struct spinlock *lk)
 	 * can be done by the compiler or the hardware.
 	 */
 	__sync_synchronize();
+
+//	lk->cpu = cpu;
 }
 
-void release(struct spinlock *lk)
+void release(lock *lk)
 {
 	if (!holding(lk))
 		kprintf("release");
 
 	__sync_synchronize();
 
+//	lk->cpu = 0;
+
 	asm volatile("movl $0, %0" : "+m" (lk->locked) : );
 
 	popcli();
-}
-
-/* Check weather the cpu is holding the lock */
-int holding(struct spinlock *lk)
-{
-	return lk->locked && lk->cpu == cpu;
-}
-
-void pushcli(void)
-{
-	int eflags;
-
-	eflags = read_flags();
-	cli();
-	if (cpu->pushcli == 0)
-	{
-		cpu->intr = eflags & IF;
-	}
-	cpu->pushcli +=1;
-}
-
-void popcli(void)
-{
-	if (read_flags() & IF)
-		kprintf("popcli - interruptable");
-	if ((cpu->pushcli && cpu->intr) == 0)
-		sti();
 }
