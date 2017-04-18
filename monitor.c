@@ -82,7 +82,7 @@ void terminal_initialize(void) {
 	terminal_row = 0;
 	terminal_column = 0;
 	attrib = vga_entry_color(VGA_COLOR_LIGHT_GREEN, VGA_COLOR_BLACK);
-	terminal_buffer = (u16*) 0xB8000;
+	terminal_buffer = (u16*) 0x800B8000;
 	for (size_t y = 0; y < VGA_HEIGHT; y++) {
 		for (size_t x = 0; x < VGA_WIDTH; x++) {
 			const size_t index = y * VGA_WIDTH + x;
@@ -187,6 +187,45 @@ void terminal_putchar(char c) {
 void terminal_write(const char* data, size_t size) {
 	for (size_t i = 0; i < size; i++)
 		terminal_putchar(data[i]);
+}
+
+void terminal_write_hex(u32 n)
+{
+    u32 tmp;
+
+    char noZeroes = 1;
+
+    int i;
+    for (i = 28; i > 0; i -= 4)
+    {
+        tmp = (n >> i) & 0xF;
+        if (tmp == 0 && noZeroes != 0)
+        {
+            continue;
+        }
+    
+        if (tmp >= 0xA)
+        {
+            noZeroes = 0;
+            terminal_putchar(tmp-0xA+'a' );
+        }
+        else
+        {
+            noZeroes = 0;
+            terminal_putchar( tmp+'0' );
+        }
+    }
+  
+    tmp = n & 0xF;
+    if (tmp >= 0xA)
+    {
+        terminal_putchar(tmp-0xA+'a');
+    }
+    else
+    {
+        terminal_putchar(tmp+'0');
+    }
+
 }
  
 void kprintf(const char* data, ...) {
