@@ -8,6 +8,11 @@ void isr_handler(registers_t regs)
 	kprintf("Recieved interrupt:");
 	kprintf("%d", regs.int_no);
 	kprintf("\n");
+
+	if (regs.int_no == 14)
+	{
+		page_fault();
+	}
 }
 
 void irq_handler(registers_t regs)
