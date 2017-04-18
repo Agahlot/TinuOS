@@ -12,7 +12,8 @@ PROGRAM	= kernel
 ISOPROG	= $(ISODIR)/boot/kernel
 OS 		= kernel.iso
 
-OBJS	+= boot.o 
+#OBJS	+= boot.o
+OBJS	+= load.o 
 OBJS	+= monitor.o
 OBJS	+= io/gdt.o 
 OBJS	+= io/idt.o
@@ -41,9 +42,14 @@ $(OBJS):
 	$(E) "  CC      " $@
 	$(Q) $(CC) -c $(CFLAGS) $< -o $@	
 
-boot.o: boot.S
+#boot.o: boot.S
+#	$(E) "  CC      " $@
+#	$(Q) $(CC) -m32 -Iinclude -gdwarf-2 -Wa,-divide -c boot.S -o boot.o
+
+load.o: load.S
 	$(E) "  CC      " $@
-	$(Q) $(CC) -m32 -Iinclude -gdwarf-2 -Wa,-divide -c boot.S -o boot.o
+	$(Q) $(CC) -m32 -Iinclude -gdwarf-2 -Wa,-divide -c load.S -o load.o	
+
 
 bochs: $(PROGRAM)
 		CYLINDERS="$$(($$(stat -c '%s' '$(PROGRAM)') / 512))" && \
