@@ -116,6 +116,7 @@ typedef struct tss_entry {
 /* monitor.c */
 extern void kprintf(const char* data, ...);
 extern void terminal_initialize(void);
+extern void terminal_write_hex(u32 n);
 
 void intcall(u8 int_no, const struct biosregs *regs, struct biosregs *oregs);
 
@@ -181,6 +182,7 @@ extern void paging_install(void);
 extern u32 *pagetable_init(void);
 extern u32 mappages(u32 *pgdir, void *va, u32 size, u32 pa, int perm);
 extern u32 *pagewalk(u32 *pgdir, void *va, int alloc);
+extern void page_fault(void);
 
 
 /* die */
