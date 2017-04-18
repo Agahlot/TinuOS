@@ -7,6 +7,9 @@
 .set MAGIC,		0x1BADB002
 .set CHECKSUM,	-(MAGIC + FLAGS)
 
+# The Multiboot header should be defined in a section and also reserve a section
+# in kernel linker script otherwise and error related to Multiboot header not found
+# will be shown.
 .section .multiboot
 .align 4
 .long MAGIC
@@ -25,6 +28,18 @@ _start:
 # according to the System V ABI standard and de-facto extensions. The compiler will
 # assume the stack is properly aligned and failure to align the stack will result in
 # undefined behavior.
+	
+	# Use 4MB pages
+	movl    %cr4, %eax
+  	orl     $(CR4_PSE), %eax
+  	movl    %eax, %cr4
+  	# Physical address of Page Directory
+  	movl    $(V2P_WO(entrypgdir)), %eax
+  	movl    %eax, %cr3
+  	# Turn on paging
+  	movl    %cr0, %eax
+  	orl     $(CR0_PG|CR0_WP), %eax
+  	movl    %eax, %cr0
 
 	movl $(stack + 4096), %esp
 
