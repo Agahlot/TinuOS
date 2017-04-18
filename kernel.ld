@@ -12,6 +12,7 @@ SECTIONS
 	. = 0x80100000;
 
 	.text : AT(0x100000) {
+		*(.multiboot)
 		*(.text .stub .text.* .gnu.linkonce.t.*)
 	}
 
