@@ -11,15 +11,11 @@ typedef void *type_t;
 typedef u8 (*lessthan_t)(type_t, type_t);
 
 typedef struct {
+	size_t size;
+	struct header_t *next;
 	u32 magic;
 	u8 is_hole;
-	u32 size;
 } header_t;
-
-typedef struct {
-	u32 magic;
-	header_t *header;
-} footer_t;
 
 typedef struct {
 	type_t *array;	/* This array always remains in sorted state */
