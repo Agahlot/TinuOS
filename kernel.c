@@ -15,7 +15,14 @@ int kernel_main()
 	kinit1(&end, P2V(4*1024*1024));
 	terminal_initialize();
 	kprintf("HELLO");
+	kprintf("\n");
 	paging_install();
+	u32 br = (u32)malloc(10);
+	kprintf("Memory Allocated is at 0x");
+	terminal_write_hex(br);
+	kprintf("\n");
+	free((u32 *)br);
+	die();
 	return 0;
 }
 
