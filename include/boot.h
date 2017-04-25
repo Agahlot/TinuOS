@@ -6,6 +6,8 @@
 #include <spinlock.h>
 #define ARRAY_SIZE(x)	(sizeof(x) / sizeof(x[0]))
 
+#define NULL 0
+
 //#define STACK_SIZE	512
 
 /* early_serial_printk.c */
@@ -53,6 +55,11 @@ static inline u32 xchg(volatile u32 *addr, u32 newval)
 
 /* tty.c */
 #define cpu_relax()	asm volatile("rep; nop")
+
+static inline void cr3(u32 p)
+{
+	asm volatile("movl %0, %%cr3" : : "r"(p));
+}
 
 /* Defined in bootparam.h */
 extern struct setup_header hdr;
@@ -183,6 +190,11 @@ extern u32 *pagetable_init(void);
 extern u32 mappages(u32 *pgdir, void *va, u32 size, u32 pa, int perm);
 extern u32 *pagewalk(u32 *pgdir, void *va, int alloc);
 extern void page_fault(void);
+
+/* umalloc.c */
+extern void* malloc(u32 size);
+extern void free(void *ap);
+extern void *ksbrk(int allocate);
 
 
 /* die */
