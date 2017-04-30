@@ -38,7 +38,7 @@ void free(void *ap)
   /* Delete that block from Heap and coalesing the free blocks */
   for (m = (header_t *)heap_bottom; m != NULL; m = m->next)
   {
-    for (; m->is_hole == 0 && m->next->is_hole == 0 ;)
+    for (; m->is_hole == 0 && m->next->is_hole == 0 && m->next != NULL ;)
     {
       /* Calculate the block size */
       m->size += m->next->size + sizeof(header_t);
@@ -51,32 +51,8 @@ void free(void *ap)
 }
 
 void *ksbrk(int allocate)
-{
-
-/*  
-  static char heap[MAX_HEAP];
+{ 
   char *new_brk, *old_brk;
-
-  if(heap_bottom == NULL)
-  {
-    heap_bottom = g_kbrk = heap;
-    heap_top = heap_bottom + MAX_HEAP;
-  }
-  new_brk = g_kbrk + allocate;
-
-  if(new_brk < heap_bottom)
-    return NULL;
-
-  if(new_brk >= heap_top)
-    return NULL;
-// success: adjust brk value...
-  old_brk = g_kbrk;
-  g_kbrk = new_brk;
-
-  return old_brk;
-*/  
-
-  char *new_brk;
   static char heap[MAX_HEAP];
 
   if (allocate == NULL)
@@ -87,11 +63,12 @@ void *ksbrk(int allocate)
 
   if (heap_bottom == NULL)
   {
-    heap_bottom = heap;
+    heap_bottom = g_kbrk = heap;
     heap_top = heap_bottom + MAX_HEAP;
+    new_brk = heap_bottom + allocate;
   }
 
-  new_brk = heap_bottom + allocate;
+  new_brk = g_kbrk + allocate;
 
   if (heap_bottom >= new_brk)
     return NULL;
@@ -99,7 +76,11 @@ void *ksbrk(int allocate)
   if (new_brk >= heap_top)
     return NULL;
 
-  return new_brk;
+  /* Remenber the pervious allocations and allocate after that */
+  old_brk = g_kbrk;
+  g_kbrk = new_brk;
+
+  return old_brk;
 }
 
 void*
@@ -118,32 +99,37 @@ malloc(u32 size)
 
   if (m != NULL)
   {
-    if (m->magic == HEAP_MAGIC)
+    if (m->magic != HEAP_MAGIC)
     {
       kprintf("Malloc() is corrupted!\n");
       return NULL;
     }
 
-    for (; m->next != NULL; m = m->next)
+    for (; m != NULL; m = m->next)
     {
       /* If block is used then, goto next block */
-      if (m->is_hole == 1)
+      if (m->is_hole)
         continue;
+
+      if (size == m->size)
+        m->is_hole = 1;
      
       else 
       {
       /* If a block is not used, allocate a new block after the current block. 
        * For example block size to be allocated is 10 and size of header_t is 
-       * 16 then, allocation should happen after m+26(size + sizeof(header_t))
-       * not m+10(size + sizeof(header_t)). 
+       * 16 then, allocation should happen after m+16(size + sizeof(header_t)). 
        */
         n = (header_t *)((char *)m + total_size);
         n->size = m->size - total_size;
-        n->magic = m->magic;
-        n->is_hole = m->is_hole;
+        n->magic = HEAP_MAGIC;
+        n->next = m->next;
+        n->is_hole = 0;
 
         /* Reduce the size of the block */
-
+        m->size = size;
+        m->next = n;
+        m->is_hole = 1;
       }
       return (char *)m + sizeof(header_t);
     }
@@ -155,13 +141,12 @@ malloc(u32 size)
     if (p == NULL)
       return NULL;
 
-    else
-    {
-      m = m->next;
-    }
     p->size = size;
     p->magic = HEAP_MAGIC;
     p->is_hole = 1;
 
-    return (char *)p + sizeof(header_t);
+    if ((int)total_size == allocate)
+      p->next = NULL;
+
+  return (char *)p + sizeof(header_t);
 }
