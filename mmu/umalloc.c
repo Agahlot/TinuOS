@@ -48,6 +48,7 @@ void free(void *ap)
     }
   }
 
+  //freep = (header_t *)((char *)ap - sizeof(header_t));
 }
 
 void *ksbrk(int allocate)
@@ -68,7 +69,10 @@ void *ksbrk(int allocate)
     new_brk = heap_bottom + allocate;
   }
 
-  new_brk = g_kbrk + allocate;
+  if (heap_bottom != NULL)
+  { 
+    new_brk = g_kbrk + allocate;
+  }
 
   if (heap_bottom >= new_brk)
     return NULL;
@@ -82,6 +86,7 @@ void *ksbrk(int allocate)
 
   return old_brk;
 }
+
 
 void*
 malloc(u32 size)
@@ -108,11 +113,11 @@ malloc(u32 size)
     for (; m != NULL; m = m->next)
     {
       /* If block is used then, goto next block */
-      if (m->is_hole)
+      if (m->is_hole == 1)
         continue;
 
-      if (size == m->size)
-        m->is_hole = 1;
+      //if (size == m->size)
+        //m->is_hole = 1;
      
       else 
       {
@@ -126,11 +131,14 @@ malloc(u32 size)
         n->next = m->next;
         n->is_hole = 0;
 
-        /* Reduce the size of the block */
+        /* Fill in the details of the block to be returned and point the block  
+         * to n.
+         */
         m->size = size;
         m->next = n;
         m->is_hole = 1;
       }
+      /* The block after the header is returned */
       return (char *)m + sizeof(header_t);
     }
   }
