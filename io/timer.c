@@ -1,11 +1,39 @@
 #include <boot.h>
+#include "../drivers/rtc/clock.h"
 
-u32 tick = 0;
+static u32 tick = 0;
 
+static int pit_handler_nest()
+{
+	return 0;
+}
+
+
+/* By default, the timer fires 18.222 times per second. Why 18.222Hz? 
+ * Some engineer at IBM must've been smoking something funky. 
+ */
 static void timer_callback(registers_t regs)
 {
 	tick++;
-	kprintf("Tick: %d\n", tick);
+	if (tick % 19 == 0)
+	{
+		if (pit_handler_nest() != 0)
+		{
+			kprintf("PIT handler error");
+		}
+	}
+
+}
+
+u32 tick_count()
+{
+	return tick;
+}
+
+/* TODO */
+void sleep(u32 millisecond)
+{
+	u32 end = tick_count() + millisecond;
 }
 
 void init_timer(u32 frequency)
