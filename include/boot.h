@@ -53,6 +53,15 @@ static inline u32 xchg(volatile u32 *addr, u32 newval)
 	return result;
 }
 
+static inline void insl(u32 port, void *addr, int cnt) 
+{
+    asm volatile (
+    	    	    "cld;"
+        	 	   	"rep; insl;"
+          		    :: "D" (addr), "d" (port), "c" (cnt)
+            		: "memory", "cc");
+}
+
 /* tty.c */
 #define cpu_relax()	asm volatile("rep; nop")
 
@@ -166,9 +175,12 @@ extern void irq_handler();
 /* isrs.c */
 extern void isr_handler(registers_t regs);
 extern void register_interrupt_handler(u8, isr_t handler);
+extern void unregister_interrupt_handler(u8);
 
 /* timer.c */
 extern void init_timer(u32 frequency);
+extern u32 tick_count();
+extern void sleep(u32 ticks);
 
 /* spinlock.c */
 extern void initlock(lock *lk, char *name);

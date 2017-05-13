@@ -42,3 +42,8 @@ void register_interrupt_handler(u8 n, isr_t handler)
 {
 	interrupt_descriptors[n] = handler;
 }
+
+void unregister_interrupt_handler(u8 n)
+{
+	interrupt_descriptors[n] = 0;
+}
