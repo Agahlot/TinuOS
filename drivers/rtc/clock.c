@@ -1,30 +1,66 @@
 #include "clock.h"
 #include <boot.h>
+#include <stdbool.h>
+
+typedef struct {
+	char str[200];
+} str_t;
+
+static char* dates_str[7] =
+{
+	"Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"
+};
+
+static char* months_str[12] = 
+{
+	"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul",
+	"Aug", "Sept", "Oct", "Nov", "Dec"
+}; 
 
 time_t current_time;
 static bool bcd;
 
 enum {
-	cmos_address = 0x70;
-	cmos_data = 0x71;
+	cmos_address = 0x70,
+	cmos_data = 0x71,
 };
 
-int get_update_in_progress_flag()
+static str_t date_to_text(u8 num)
 {
-	outb(cmos_address, 0x0A);
-	return (inb(cmos_data) & 0x80);
+	str_t date;
+	if (num < 1 || num > 7)
+		kprintf("Invalid Week");
+	strcpy(date.str, dates_str[num]);
+	return date;
 }
 
-unsigned char read_register(int reg)
+static str_t month_to_text(u8 num)
 {
-	outb(cmos_address, reg);
+	str_t month;
+	if (num < 1 || num > 12) {
+		kprintf("Invalid Month");
+	}
+	memset(month.str, 0, 200);
+	strcpy(month.str, months_str[num]);
+	return month;
+}
+
+u8 read_register(int reg)
+{
+	outb(reg, cmos_address);
 	return inb(cmos_data);
+}
+
+int get_update_in_progress_flag() 
+{
+	outb(0x0A, cmos_address);
+	return (inb(cmos_data) & 0x80);
 }
 
 unsigned char write_register(unsigned char reg, unsigned char value)
 {
-	outb(cmos_address, reg);
-	outb(cmos_data, value);
+	outb(reg, cmos_address);
+	outb(value, cmos_data);
 }
 
 unsigned char bcd2bin(unsigned char bcd)
@@ -37,11 +73,12 @@ void gettime(time_t *time)
 	memcpy(time, &current_time, sizeof(time_t));
 }
 
-void rtc_handler()
+static void rtc_handler(registers_t regs)
 {
-	if (read_register(0x0C) & 0x10)
+	bool ready = read_register(0x0C) & 0x10;
+	if (ready)
 	{
-		if (bcd)
+	/*	if (bcd)
 		{
 			current_time.second = bcd2bin(read_register(0x00));
 			current_time.minute = bcd2bin(read_register(0x02));
@@ -50,8 +87,10 @@ void rtc_handler()
 			current_time.year = bcd2bin(read_register(0x09));
 			current_time.day_of_week = bcd2bin(read_register(0x06));
 			current_time.day_of_month = bcd2bin(read_register(0x07));
+			current_time.century = bcd2bin(read_register(0x32));
 		}
 		else 
+	*/	
 		{
 			current_time.second = read_register(0x00);
 			current_time.minute = read_register(0x02);
@@ -60,15 +99,35 @@ void rtc_handler()
 			current_time.year = read_register(0x09);
 			current_time.day_of_week = read_register(0x06);
 			current_time.day_of_month = read_register(0x07);
+			current_time.century = read_register(0x32);
 		}
-	}
+	}	
+	str_t weekday = date_to_text(current_time.day_of_week);
+	str_t month = month_to_text(current_time.day_of_month);
+	kprintf("%s %s %x:%x:%x UTC %x%x\n",
+				(weekday.str),
+				(month.str),
+				current_time.hour,
+				current_time.minute,
+				current_time.second,
+				current_time.century,
+				current_time.year);
 }
 
-u32 time()
+void rtc_print_struct(time_t current_time)
 {
-	return tick_count();
+	str_t weekday = date_to_text(current_time.day_of_week);
+	str_t month = month_to_text(current_time.day_of_month);
+	kprintf("%s %s %x:%x:%x UTC %x%x\n",
+				(weekday.str),
+				(month.str),
+				current_time.hour,
+				current_time.minute,
+				current_time.second,
+				current_time.century,
+				current_time.year);
 }
- 
+
 void rtc_install(void)
 {
 	unsigned char status;
@@ -83,5 +142,5 @@ void rtc_install(void)
 
 	read_register(0x0C);
 
-	register_interrupt_handler(8, rtc_handler);
+	register_interrupt_handler(40, &rtc_handler);
 }

@@ -1,5 +1,6 @@
 #include <boot.h>
 #include <isrs.h>
+#include "../drivers/rtc/clock.h"
 
 isr_t interrupt_descriptors[256];
 

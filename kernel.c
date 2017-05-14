@@ -3,6 +3,7 @@
 #include <memlayout.h>
 #include <multiboot.h>
 #include <paging.h>
+#include "drivers/rtc/clock.h"
 
 extern char end[];
 u32 entrypgdir[];
@@ -14,14 +15,19 @@ int kernel_main()
 	idt();
 	kinit1(&end, P2V(4*1024*1024));
 	terminal_initialize();
-	kprintf("HELLO");
-	kprintf("\n");
+
+	asm volatile("sti");
+
+	/* Start timer with 1000Hz frequency */
+	init_timer(1000);
+
+	/* Install Real Time Clock handler */
+	rtc_install();
+
+	sleep(40);
+
 	paging_install();
-	u32 br = (u32)malloc(10);
-	kprintf("Memory Allocated is at 0x");
-	terminal_write_hex(br);
-	kprintf("\n");
-	free((u32 *)br);
+
 	die();
 	return 0;
 }
