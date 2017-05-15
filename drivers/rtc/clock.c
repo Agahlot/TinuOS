@@ -8,7 +8,7 @@ typedef struct {
 
 static char* dates_str[7] =
 {
-	"Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"
+	"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" 
 };
 
 static char* months_str[12] = 
@@ -30,7 +30,7 @@ static str_t date_to_text(u8 num)
 	str_t date;
 	if (num < 1 || num > 7)
 		kprintf("Invalid Week");
-	strcpy(date.str, dates_str[num]);
+	strcpy(date.str, dates_str[num-2]);
 	return date;
 }
 
@@ -40,8 +40,7 @@ static str_t month_to_text(u8 num)
 	if (num < 1 || num > 12) {
 		kprintf("Invalid Month");
 	}
-	memset(month.str, 0, 200);
-	strcpy(month.str, months_str[num]);
+	strcpy(month.str, months_str[num-1]);
 	return month;
 }
 
@@ -103,7 +102,7 @@ static void rtc_handler(registers_t regs)
 		}
 	}	
 	str_t weekday = date_to_text(current_time.day_of_week);
-	str_t month = month_to_text(current_time.day_of_month);
+	str_t month = month_to_text(current_time.month);
 	kprintf("%s %s %x:%x:%x UTC %x%x\n",
 				(weekday.str),
 				(month.str),
