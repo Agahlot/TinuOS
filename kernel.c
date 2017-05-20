@@ -24,7 +24,12 @@ int kernel_main()
 	/* Install Real Time Clock handler */
 	rtc_install();
 
+	/* The clock gives invalid value if a delay is not given */
 	sleep(40);
+
+	time_t clock = rtc_handler();
+
+	rtc_print_struct(clock);
 
 	paging_install();
 

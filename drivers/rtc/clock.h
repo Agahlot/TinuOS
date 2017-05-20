@@ -14,4 +14,5 @@ typedef struct {
 extern void gettime(time_t *time);
 extern void rtc_install(void);
 extern void rtc_print_struct(time_t current_time);
+extern time_t rtc_handler(void);
 extern u32 time(void);

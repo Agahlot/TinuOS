@@ -44,6 +44,7 @@ static str_t month_to_text(u8 num)
 	return month;
 }
 
+/* TODO add protection */
 u8 read_register(int reg)
 {
 	outb(reg, cmos_address);
@@ -52,8 +53,9 @@ u8 read_register(int reg)
 
 int get_update_in_progress_flag() 
 {
-	outb(0x0A, cmos_address);
-	return (inb(cmos_data) & 0x80);
+	read_register(0x0A);
+	//outb(0x0A, cmos_address);
+	//return (inb(cmos_data) & 0x80);
 }
 
 unsigned char write_register(unsigned char reg, unsigned char value)
@@ -72,10 +74,16 @@ void gettime(time_t *time)
 	memcpy(time, &current_time, sizeof(time_t));
 }
 
-static void rtc_handler(registers_t regs)
+time_t rtc_handler()
 {
-	bool ready = read_register(0x0C) & 0x10;
+	/*bool ready = read_register(0x0C) & 0x10;
 	if (ready)
+	*/
+	time_t curr;
+    time_t last; //Keep reading time until we get the same values twice
+
+    memset(&last, 0xFF, sizeof(last));
+    for (curr.year = 0; memcmp(&curr, &last, sizeof(curr)); last = curr)
 	{
 	/*	if (bcd)
 		{
@@ -90,7 +98,6 @@ static void rtc_handler(registers_t regs)
 		}
 		else 
 	*/	
-		{
 			current_time.second = read_register(0x00);
 			current_time.minute = read_register(0x02);
 			current_time.hour = read_register(0x04);
@@ -99,24 +106,14 @@ static void rtc_handler(registers_t regs)
 			current_time.day_of_week = read_register(0x06);
 			current_time.day_of_month = read_register(0x07);
 			current_time.century = read_register(0x32);
-		}
 	}	
-	str_t weekday = date_to_text(current_time.day_of_week);
-	str_t month = month_to_text(current_time.month);
-	kprintf("%s %s %x:%x:%x UTC %x%x\n",
-				(weekday.str),
-				(month.str),
-				current_time.hour,
-				current_time.minute,
-				current_time.second,
-				current_time.century,
-				current_time.year);
+	return current_time;
 }
 
 void rtc_print_struct(time_t current_time)
 {
 	str_t weekday = date_to_text(current_time.day_of_week);
-	str_t month = month_to_text(current_time.day_of_month);
+	str_t month = month_to_text(current_time.month);
 	kprintf("%s %s %x:%x:%x UTC %x%x\n",
 				(weekday.str),
 				(month.str),
@@ -141,5 +138,5 @@ void rtc_install(void)
 
 	read_register(0x0C);
 
-	register_interrupt_handler(40, &rtc_handler);
+	//register_interrupt_handler(40, &rtc_handler);
 }

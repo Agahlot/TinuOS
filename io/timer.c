@@ -31,9 +31,10 @@ u32 tick_count()
 }
 
 /* TODO */
-void sleep(u32 millisecond)
+void sleep(u32 ticks)
 {
-	u32 end = tick_count() + millisecond;
+	u32 end = tick + ticks;
+	while(tick < end);
 }
 
 void init_timer(u32 frequency)
