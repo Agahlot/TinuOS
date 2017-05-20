@@ -1,3 +1,6 @@
+/* http://wiki.osdev.org/Brendan%27s_Memory_Management_Guide#Physical_Memory_Management */
+/* TODO add buddy allocator */
+
 #include <boot.h>
 #include <kheap.h>
 
@@ -5,6 +8,23 @@ static header_t base;
 static header_t *freep;
 
 static char *heap_top, *heap_bottom, *g_kbrk;
+
+u32 next_power_of_two(u32 const v)
+{
+  u32 r;
+
+  if (v > 1)
+  {
+    float f = (float)v;
+    u32 const t = 1UL << ((*(u32 *)&f >> 23) - 0x7f);
+    r = t << (t < v);
+  }
+  else
+  {
+    r = 1;
+  }
+  return r;
+}
 
 void free(void *ap)
 {
@@ -95,7 +115,7 @@ malloc(u32 size)
   u32 total_size;
   int allocate;
 
-  total_size = size + sizeof(header_t);
+  total_size = next_power_of_two(size) + sizeof(header_t);
 
   if (size == 0)
     return NULL;
