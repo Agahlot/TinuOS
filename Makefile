@@ -24,10 +24,11 @@ OBJS	+= mmu/spinlock.o
 OBJS	+= mmu/mmu.o
 OBJS	+= mmu/kmalloc.o
 OBJS	+= mmu/umalloc.o
+OBJS	+= drivers/rtc/clock.c
 OBJS 	+= system.o
 OBJS	+= kernel.o 
 
-CFLAGS	= -m32 -Iinclude -nostdlib -nostdinc -fno-builtin -fno-stack-protector -g
+CFLAGS	= -m32 -Iinclude -ffreestanding -std=gnu99 -nostdlib -nostdinc -fno-builtin -fno-stack-protector -g
 
 $(PROGRAM):	$(OBJS)
 	$(E) "  LINK	  " $@
